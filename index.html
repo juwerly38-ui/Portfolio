@@ -1,0 +1,2627 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>통역사 스케줄 관리 시스템</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',sans-serif;background:#f8f9fa;min-height:100vh;padding:20px;}
+.container{max-width:1400px;margin:0 auto;}
+
+/* ── 헤더 ── */
+.header{background:linear-gradient(135deg,#00C300,#06C755);border-radius:16px;box-shadow:0 4px 20px rgba(0,195,0,.2);padding:28px 32px;margin-bottom:24px;color:#fff;}
+.header-content{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+.header-left{display:flex;align-items:center;gap:16px;}
+.title{font-size:24px;font-weight:700;letter-spacing:-.5px;}
+.subtitle{color:rgba(255,255,255,.85);margin-top:3px;font-size:14px;}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.hdr-select,.hdr-input{padding:9px 14px;border:2px solid rgba(255,255,255,.3);border-radius:10px;font-size:13px;background:rgba(255,255,255,.92);color:#333;font-weight:500;}
+
+/* ── 규칙 박스 ── */
+.rules-box{background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:2px solid #bbf7d0;border-radius:14px;padding:18px 22px;margin-bottom:20px;box-shadow:0 2px 10px rgba(0,195,0,.08);}
+.rules-title{font-weight:700;color:#00C300;font-size:15px;margin-bottom:6px;}
+.rules-text{font-size:13px;color:#16a34a;line-height:1.7;}
+.rules-ext{font-size:12px;color:#2563eb;margin-top:6px;padding:7px 12px;background:rgba(37,99,235,.07);border-radius:8px;border-left:3px solid #3b82f6;line-height:1.7;}
+
+/* ── 탭 ── */
+.tabs{display:flex;gap:4px;margin-bottom:20px;background:#fff;padding:6px;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.07);width:fit-content;}
+.tab-btn{padding:9px 20px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;color:#6b7280;background:transparent;}
+.tab-btn.active{background:linear-gradient(135deg,#00C300,#06C755);color:#fff;box-shadow:0 2px 8px rgba(0,195,0,.3);}
+.tab-btn:hover:not(.active){background:#f3f4f6;color:#333;}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* ── 카드 공통 ── */
+.card{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.07);border:1px solid #f0f0f0;padding:20px;margin-bottom:16px;}
+
+/* ── 일별 뷰 타임라인 ── */
+.time-labels-wrap{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.07);padding:16px 20px;margin-bottom:12px;border:1px solid #f0f0f0;overflow-x:auto;}
+.zone-banner-row{display:flex;min-width:800px;margin-bottom:6px;}
+.zone-spacer{width:170px;flex-shrink:0;}
+.zone-badges{flex:1;display:flex;gap:2px;align-items:center;}
+.zone-badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:20px;text-align:center;white-space:nowrap;}
+.zone-badge.ext{background:#dbeafe;color:#2563eb;}
+.zone-badge.core{background:#dcfce7;color:#16a34a;}
+.time-header-row{display:flex;min-width:800px;}
+.th-name{width:170px;flex-shrink:0;}
+.th-slots{flex:1;display:flex;gap:2px;}
+.th-slot{flex:1;text-align:center;font-size:10px;color:#666;padding:4px 0;transform:rotate(-45deg);white-space:nowrap;font-weight:500;}
+.th-slot.ext{color:#3b82f6;font-weight:600;}
+
+/* 통역사 행 */
+.interp-row{background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.07);padding:14px 20px;margin-bottom:8px;display:flex;align-items:center;border:1px solid #f0f0f0;transition:all .25s;overflow-x:auto;}
+.interp-row:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,195,0,.1);}
+.interp-info{width:170px;flex-shrink:0;display:flex;align-items:center;gap:10px;}
+.interp-name{font-weight:600;color:#333;font-size:14px;}
+.interp-hours{font-size:11px;color:#00C300;font-weight:500;}
+.slots-wrap{flex:1;display:flex;gap:2px;min-width:0;}
+
+/* 슬롯 */
+.slot{flex:1;min-width:0;height:46px;border-radius:6px;font-size:10px;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;transition:all .2s;position:relative;font-weight:500;overflow:hidden;}
+.slot-available{background:linear-gradient(135deg,#dcfce7,#bbf7d0);border:1px solid #86efac;color:#16a34a;}
+.slot-available:hover{background:linear-gradient(135deg,#bbf7d0,#86efac);transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,195,0,.2);}
+.slot-extended{background:linear-gradient(135deg,#dbeafe,#bfdbfe);border:1px solid #93c5fd;color:#2563eb;}
+.slot-extended:hover{background:linear-gradient(135deg,#bfdbfe,#93c5fd);transform:translateY(-1px);box-shadow:0 3px 10px rgba(59,130,246,.2);}
+.slot-occupied{background:linear-gradient(135deg,#fca5a5,#f87171);color:#fff;border:1px solid #ef4444;font-weight:600;}
+.slot-occupied-ext{background:linear-gradient(135deg,#a5b4fc,#818cf8);color:#fff;border:1px solid #6366f1;font-weight:600;}
+.slot-occupied-regular{background:linear-gradient(135deg,#86efac,#4ade80);color:#fff;border:1px solid #22c55e;font-weight:600;}
+.slot-rest{background:linear-gradient(135deg,#fef3c7,#fde047);color:#d97706;border:1px solid #f59e0b;}
+.slot-limit{background:linear-gradient(135deg,#f3f4f6,#e5e7eb);color:#6b7280;border:1px solid #d1d5db;cursor:default;}
+.slot-unavailable{background:#f9fafb;border:1px solid #e5e7eb;color:#d1d5db;cursor:default;}
+/* 버퍼 잠금 슬롯 */
+.slot-locked{background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1px solid #fcd34d;color:#92400e;cursor:default;}
+/* 신청 불가 (예약 꽉 참) */
+.slot-full{background:linear-gradient(135deg,#fff1f2,#ffe4e6);border:1px solid #fca5a5;color:#ef4444;cursor:default;}
+.del-btn{position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:#dc2626;color:#fff;border:none;border-radius:50%;font-size:10px;cursor:pointer;display:none;align-items:center;justify-content:center;font-weight:700;z-index:10;line-height:1;}
+.slot-occupied:hover .del-btn,.slot-occupied-ext:hover .del-btn,.slot-occupied-regular:hover .del-btn{display:flex;}
+
+/* ── 주별 뷰 ── */
+.week-nav{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.week-nav button{padding:7px 14px;border:1.5px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#333;transition:all .2s;}
+.week-nav button:hover{background:#f0fdf4;border-color:#00C300;color:#00C300;}
+.week-title{font-size:16px;font-weight:700;color:#333;}
+.week-grid{overflow-x:auto;}
+.week-table{width:100%;border-collapse:collapse;min-width:700px;}
+.week-table th{background:#f8f9fa;padding:10px 8px;font-size:12px;font-weight:600;color:#555;border:1px solid #e5e7eb;text-align:center;}
+.week-table th.today-col{background:linear-gradient(135deg,#dcfce7,#bbf7d0);color:#16a34a;}
+.week-table td{padding:6px;border:1px solid #f0f0f0;vertical-align:top;min-height:60px;font-size:11px;}
+.week-cell{min-height:50px;}
+.week-slot{padding:4px 6px;border-radius:6px;margin-bottom:3px;font-size:11px;font-weight:500;cursor:pointer;}
+.week-slot.available{background:#dcfce7;color:#16a34a;}
+.week-slot.extended{background:#dbeafe;color:#2563eb;}
+.week-slot.occupied{background:#fca5a5;color:#991b1b;}
+.week-slot.regular-occ{background:#86efac;color:#166534;}
+.week-slot.holiday{background:#f3f4f6;color:#9ca3af;font-style:italic;}
+
+/* ── 월별 뷰 ── */
+.month-nav{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.month-nav button{padding:7px 14px;border:1.5px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:#333;transition:all .2s;}
+.month-nav button:hover{background:#f0fdf4;border-color:#00C300;color:#00C300;}
+.month-title{font-size:16px;font-weight:700;color:#333;}
+.month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.month-day-hdr{text-align:center;padding:8px;font-size:12px;font-weight:700;color:#555;background:#f8f9fa;border-radius:6px;}
+.month-day-hdr.sun{color:#ef4444;}
+.month-day-hdr.sat{color:#3b82f6;}
+.month-cell{background:#fff;border:1.5px solid #f0f0f0;border-radius:8px;padding:6px;min-height:80px;cursor:pointer;transition:all .2s;}
+.month-cell:hover{border-color:#00C300;background:#f0fdf4;}
+.month-cell.other-month{background:#fafafa;opacity:.5;}
+.month-cell.today{border-color:#00C300;background:#f0fdf4;}
+.month-cell.holiday-cell{background:#fff5f5;}
+.month-day-num{font-size:13px;font-weight:600;color:#333;margin-bottom:4px;}
+.month-day-num.sun{color:#ef4444;}
+.month-day-num.sat{color:#3b82f6;}
+.month-day-num.holiday{color:#ef4444;}
+.month-event{font-size:10px;padding:2px 5px;border-radius:4px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.month-event.regular{background:#bbf7d0;color:#166534;}
+.month-event.normal{background:#fca5a5;color:#991b1b;}
+.month-event.holiday-ev{background:#fee2e2;color:#991b1b;font-style:italic;}
+.month-more{font-size:10px;color:#6b7280;margin-top:2px;}
+
+/* ── 정례 탭 ── */
+.regular-list{display:flex;flex-direction:column;gap:10px;}
+.regular-item{background:#fff;border:1.5px solid #bbf7d0;border-radius:12px;padding:16px 20px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;}
+.regular-item.inactive{border-color:#e5e7eb;opacity:.7;}
+.regular-info h4{font-size:14px;font-weight:700;color:#333;margin-bottom:6px;}
+.regular-meta{font-size:12px;color:#666;line-height:1.8;}
+.regular-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;background:#dcfce7;color:#16a34a;margin-left:8px;}
+.regular-badge.inactive{background:#f3f4f6;color:#6b7280;}
+.regular-actions{display:flex;flex-direction:column;gap:6px;min-width:90px;}
+.regular-dates{margin-top:10px;display:flex;flex-wrap:wrap;gap:4px;}
+.date-chip{font-size:11px;padding:3px 8px;border-radius:20px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;cursor:pointer;transition:all .2s;}
+.date-chip:hover{background:#fee2e2;color:#ef4444;border-color:#fca5a5;}
+.date-chip.cancelled{background:#fee2e2;color:#9ca3af;border-color:#fca5a5;text-decoration:line-through;cursor:default;}
+
+/* ── 정례 시간표 뷰 ── */
+.reg-timetable-wrap{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.07);border:1px solid #f0f0f0;overflow-x:auto;margin-bottom:16px;}
+.reg-timetable-header{padding:16px 20px 10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f0f0f0;}
+.reg-timetable-title{font-size:15px;font-weight:700;color:#333;}
+.reg-tt-legend{display:flex;gap:12px;font-size:11px;}
+.reg-tt-legend-item{display:flex;align-items:center;gap:5px;}
+.reg-tt-legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+/* 정례 시간표 테이블 */
+.reg-tt-table{width:100%;border-collapse:collapse;min-width:650px;}
+.reg-tt-table th{background:#f8f9fa;padding:8px 6px;font-size:11px;font-weight:700;color:#555;border:1px solid #e5e7eb;text-align:center;white-space:nowrap;}
+.reg-tt-table th.time-col{width:62px;background:#f0fdf4;color:#16a34a;}
+.reg-tt-table td{padding:2px;border:1px solid #f0f0f0;vertical-align:top;}
+/* 정례 슬롯 */
+.reg-slot{height:32px;display:flex;align-items:center;justify-content:center;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;transition:all .18s;text-align:center;line-height:1.2;}
+.reg-slot.available{background:linear-gradient(135deg,#dcfce7,#bbf7d0);color:#16a34a;border:1px solid #86efac;}
+.reg-slot.available:hover{background:linear-gradient(135deg,#bbf7d0,#86efac);transform:scale(1.03);box-shadow:0 2px 8px rgba(0,195,0,.2);}
+.reg-slot.unavailable{background:#f9fafb;color:#d1d5db;border:1px solid #e5e7eb;cursor:default;}
+.reg-slot.holiday{background:#fff5f5;color:#fca5a5;border:1px solid #fecaca;cursor:default;font-style:italic;}
+.reg-slot.occupied{background:linear-gradient(135deg,#86efac,#4ade80);color:#166534;border:1px solid #22c55e;cursor:default;}
+.reg-week-nav{display:flex;align-items:center;gap:10px;}
+.reg-week-nav button{padding:5px 12px;border:1.5px solid #e5e7eb;border-radius:7px;background:#fff;cursor:pointer;font-size:12px;font-weight:600;color:#333;transition:all .2s;}
+.reg-week-nav button:hover{background:#f0fdf4;border-color:#00C300;color:#00C300;}
+
+/* ── 통역사 관리 ── */
+.interp-manage-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:16px;}
+.interp-card{background:#fff;border:1.5px solid #e5e7eb;border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;}
+.interp-card-info{font-size:13px;font-weight:600;color:#333;}
+.interp-card-sub{font-size:11px;color:#6b7280;margin-top:2px;}
+.interp-card-actions{display:flex;gap:6px;}
+
+/* ── 엑셀 추출 ── */
+.export-section{background:#fff;border-radius:14px;border:1.5px solid #e5e7eb;padding:20px;margin-bottom:16px;}
+.export-title{font-size:15px;font-weight:700;color:#333;margin-bottom:14px;}
+.export-filters{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px;}
+.export-filter{display:flex;flex-direction:column;gap:5px;}
+.export-filter label{font-size:12px;font-weight:600;color:#555;}
+.export-filter select,.export-filter input{padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;background:#fff;}
+
+/* ── 가능 시간 등록 ── */
+.avail-section{margin-bottom:20px;}
+.avail-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.avail-chip{font-size:12px;padding:4px 10px;border-radius:20px;background:#dbeafe;color:#2563eb;border:1px solid #93c5fd;display:flex;align-items:center;gap:5px;}
+.avail-chip .remove{cursor:pointer;font-weight:700;color:#1d4ed8;}
+.avail-chip.recurring{background:#f0fdf4;color:#16a34a;border-color:#86efac;}
+
+/* ── 범례 ── */
+.legend{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.07);padding:20px;margin-top:24px;border:1px solid #f0f0f0;}
+.legend-title{font-weight:700;margin-bottom:12px;font-size:16px;color:#333;}
+.legend-items{display:flex;flex-wrap:wrap;gap:14px;}
+.legend-item{display:flex;align-items:center;gap:7px;}
+.legend-color{width:18px;height:18px;border-radius:5px;border:1px solid rgba(0,0,0,.1);flex-shrink:0;}
+.legend-text{font-size:12px;font-weight:500;color:#333;}
+
+/* ── 모달 ── */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal.show{display:flex;}
+.modal-box{background:#fff;padding:28px;border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,.2);max-width:500px;width:93%;max-height:93vh;overflow-y:auto;border:1px solid #f0f0f0;}
+.modal-title{font-size:20px;font-weight:700;margin-bottom:18px;color:#333;text-align:center;}
+.ext-badge{display:inline-flex;align-items:center;gap:5px;background:#dbeafe;color:#2563eb;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;margin-bottom:14px;border:1px solid #93c5fd;}
+.fg{margin-bottom:15px;}
+.fg label{display:block;font-size:13px;font-weight:600;margin-bottom:5px;color:#333;}
+.fi{width:100%;padding:10px 13px;border:2px solid #e5e7eb;border-radius:10px;font-size:13px;transition:all .2s;font-family:inherit;resize:vertical;}
+.fi:focus{outline:none;border-color:#00C300;box-shadow:0 0 0 3px rgba(0,195,0,.1);}
+.fd{padding:10px 13px;background:#f8f9fa;border-radius:10px;font-size:13px;font-weight:600;color:#00C300;border:2px solid #e5e7eb;}
+.fd.ext{color:#2563eb;background:#eff6ff;border-color:#bfdbfe;}
+.modal-btns{display:flex;justify-content:center;gap:10px;margin-top:22px;}
+.btn{padding:10px 20px;border:2px solid transparent;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .25s;min-width:80px;}
+.btn-primary{background:linear-gradient(135deg,#00C300,#06C755);color:#fff;border-color:#00C300;}
+.btn-primary:hover{background:linear-gradient(135deg,#00A800,#05B645);transform:translateY(-1px);box-shadow:0 3px 12px rgba(0,195,0,.3);}
+.btn-blue{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border-color:#3b82f6;}
+.btn-blue:hover{background:linear-gradient(135deg,#2563eb,#1d4ed8);transform:translateY(-1px);}
+.btn-red{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border-color:#ef4444;}
+.btn-red:hover{transform:translateY(-1px);}
+.btn-secondary{background:#fff;color:#6b7280;border-color:#d1d5db;}
+.btn-secondary:hover{background:#f9fafb;transform:translateY(-1px);}
+.btn-sm{padding:5px 10px;font-size:11px;min-width:unset;}
+
+/* 정례 신청 모달 */
+.recur-preview{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;font-size:12px;color:#166534;line-height:1.8;margin-top:8px;max-height:160px;overflow-y:auto;}
+.holiday-note{font-size:11px;color:#ef4444;margin-top:4px;}
+
+/* 구분선 */
+.divider{height:2px;background:linear-gradient(to right,#00C300,transparent);border-radius:2px;margin:20px 0;opacity:.3;}
+
+/* 반응형 */
+@media(max-width:600px){
+  .header-content{flex-direction:column;align-items:flex-start;}
+  .tabs{flex-wrap:wrap;}
+  .export-filters{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- ── 헤더 ── -->
+<div class="header">
+  <div class="header-content">
+    <div class="header-left">
+      <svg width="36" height="36" fill="none" stroke="#fff" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
+      <div>
+        <div class="title">통역사 스케줄 관리 시스템</div>
+        <div class="subtitle">일정 조율 및 섭외 관리</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <select id="userRole" class="hdr-select">
+        <option value="requester">신청자</option>
+        <option value="admin">관리자</option>
+        <option value="interpreter">통역사</option>
+      </select>
+      <!-- 통역사 선택 (통역사 역할 시) -->
+      <select id="interpSelect" class="hdr-select" style="display:none;">
+        <option value="">-- 본인 선택 --</option>
+      </select>
+      <input type="date" id="selectedDate" class="hdr-input" value="">
+    </div>
+  </div>
+</div>
+
+<!-- ── 규칙 박스 ── -->
+<div class="rules-box">
+  <div class="rules-title">📋 통역 규칙</div>
+  <p class="rules-text">
+    • 하루 최대 4시간 &nbsp;•&nbsp; 1회 최대 1시간 30분 &nbsp;•&nbsp; 통역 후 30분 준비 필요 &nbsp;•&nbsp; 정규: 09:00–19:00
+  </p>
+  <p class="rules-ext">
+    🟢 <strong>일반 신청</strong>: 날짜 제한 없이 상시 신청 가능 &nbsp;|&nbsp; 관리자 검토 후 배정<br>
+    🔴 <strong>긴급 신청</strong>: 매일 00:00 기준 D+3 영업일부터 신청 오픈 &nbsp;|&nbsp; 한국 공휴일·주말 제외<br>
+    🔵 <strong>연장 운영</strong>: 08:00–09:00 / 19:00–21:00 &nbsp;|&nbsp; 통역사 희망 시 예외 배정 가능<br>
+    🔁 <strong>정례 통역</strong>: 3개월 이내 반복 신청 가능 &nbsp;|&nbsp; 한국·일본 공휴일 자동 제외
+  </p>
+</div>
+
+<!-- ── 탭 ── -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('daily')">📅 일별</button>
+  <button class="tab-btn" onclick="switchTab('weekly')">📆 주별</button>
+  <button class="tab-btn" onclick="switchTab('monthly')">🗓️ 월별</button>
+  <button class="tab-btn" onclick="switchTab('regular')">🔁 정례</button>
+  <button class="tab-btn" id="adminTab" style="display:none;" onclick="switchTab('manage')">⚙️ 관리</button>
+</div>
+
+<!-- ══════════════ TAB: 일별 ══════════════ -->
+<div id="tab-daily" class="tab-content active">
+  <div class="time-labels-wrap">
+    <div class="zone-banner-row"><div class="zone-spacer"></div><div id="zoneBanners" class="zone-badges"></div></div>
+    <div class="time-header-row"><div class="th-name"></div><div class="th-slots" id="timeLabels"></div></div>
+  </div>
+  <div id="interpreterList"></div>
+</div>
+
+<!-- ══════════════ TAB: 주별 ══════════════ -->
+<div id="tab-weekly" class="tab-content">
+  <div class="card">
+    <div class="week-nav">
+      <button onclick="changeWeek(-1)">◀ 이전 주</button>
+      <span class="week-title" id="weekTitle"></span>
+      <button onclick="changeWeek(1)">다음 주 ▶</button>
+      <button onclick="goToTodayWeek()" style="margin-left:8px;background:#f0fdf4;color:#16a34a;border-color:#86efac;">오늘</button>
+    </div>
+    <div class="week-grid">
+      <table class="week-table" id="weekTable"></table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ TAB: 월별 ══════════════ -->
+<div id="tab-monthly" class="tab-content">
+  <div class="card">
+    <div class="month-nav">
+      <button onclick="changeMonth(-1)">◀ 이전</button>
+      <span class="month-title" id="monthTitle"></span>
+      <button onclick="changeMonth(1)">다음 ▶</button>
+      <button onclick="goToTodayMonth()" style="margin-left:8px;background:#f0fdf4;color:#16a34a;border-color:#86efac;">오늘</button>
+    </div>
+    <div class="month-grid" id="monthGrid"></div>
+  </div>
+</div>
+
+<!-- ══════════════ TAB: 정례 ══════════════ -->
+<div id="tab-regular" class="tab-content">
+
+  <!-- ① 요일별 시간표 (신청자/통역사 뷰) -->
+  <div id="regTimetableSection" class="reg-timetable-wrap">
+    <div class="reg-timetable-header">
+      <div>
+        <div class="reg-timetable-title">🗓️ 요일별 통역 가능 시간표</div>
+        <div style="font-size:12px;color:#6b7280;margin-top:2px;">정규 시간(09:00–19:00) 기준 · 초록 슬롯 클릭 시 정례 신청 문의</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+        <div class="reg-tt-legend">
+          <div class="reg-tt-legend-item"><div class="reg-tt-legend-dot" style="background:#dcfce7;border:1px solid #86efac;"></div><span style="color:#16a34a;">협의 필요</span></div>
+          <div class="reg-tt-legend-item"><div class="reg-tt-legend-dot" style="background:#86efac;border:1px solid #22c55e;"></div><span style="color:#166534;">정례 배정됨</span></div>
+          <div class="reg-tt-legend-item"><div class="reg-tt-legend-dot" style="background:#f9fafb;border:1px solid #e5e7eb;"></div><span style="color:#9ca3af;">불가 (만석)</span></div>
+          <div class="reg-tt-legend-item"><div class="reg-tt-legend-dot" style="background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;"></div><span style="color:#92400e;">🔒 수동 블록</span></div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:12px 16px 16px;overflow-x:auto;">
+      <table class="reg-tt-table" id="regTimetable" style="min-width:500px;"></table>
+    </div>
+  </div>
+
+  <!-- ② 관리자 전용: 정례 승인 대기 목록 -->
+  <div id="regAdminSection" style="display:none;">
+    <div class="card" style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div>
+          <div style="font-size:16px;font-weight:700;color:#333;">⏳ 정례 신청 승인 대기</div>
+          <div style="font-size:12px;color:#6b7280;margin-top:3px;">신청자가 제출한 정례 통역 신청 목록 — 승인 시 시간표에 자동 반영</div>
+        </div>
+      </div>
+      <div id="regPendingList"></div>
+    </div>
+
+    <!-- 관리자 수기 블록 처리 패널 -->
+    <div class="card" style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div>
+          <div style="font-size:16px;font-weight:700;color:#333;">🚫 수기 블록 처리</div>
+          <div style="font-size:12px;color:#6b7280;margin-top:3px;">특정 요일·시간대를 수동으로 불가 처리 (정례 배정 차단)</div>
+        </div>
+        <button class="btn btn-red btn-sm" onclick="openManualBlockModal()">+ 블록 추가</button>
+      </div>
+      <div id="manualBlockList" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+    </div>
+
+    <!-- 관리자도 시간표 볼 수 있게 -->
+    <div class="reg-timetable-wrap">
+      <div class="reg-timetable-header">
+        <div>
+          <div class="reg-timetable-title">📋 요일별 배정 현황 (관리자)</div>
+          <div style="font-size:12px;color:#6b7280;margin-top:2px;">수기 블록 포함 전체 시간표 · 배정된 정례 슬롯 클릭 시 상세 확인</div>
+        </div>
+      </div>
+      <div style="padding:12px 16px 16px;overflow-x:auto;">
+        <table class="reg-tt-table" id="regTimetableAdmin" style="min-width:500px;"></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 정례 목록 -->
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <div>
+      <div style="font-size:16px;font-weight:700;color:#333;">정례 통역 일정 목록</div>
+      <div style="font-size:12px;color:#6b7280;margin-top:3px;">반복 신청된 전체 정례 통역 목록</div>
+    </div>
+    <button class="btn btn-primary" id="addRegularBtn" onclick="openRegularModal()" style="display:none;">+ 정례 신청</button>
+  </div>
+  <div id="regularList" class="regular-list"></div>
+</div>
+
+<!-- ══════════════ TAB: 관리 (관리자) ══════════════ -->
+<div id="tab-manage" class="tab-content">
+
+  <!-- 통역사 관리 -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:700;color:#333;">👥 통역사 관리</div>
+      <button class="btn btn-primary btn-sm" onclick="openInterpAddModal()">+ 통역사 추가</button>
+    </div>
+    <div id="interpManageList" class="interp-manage-list"></div>
+  </div>
+
+  <!-- 엑셀 추출 -->
+  <div class="card">
+    <div style="font-size:16px;font-weight:700;color:#333;margin-bottom:16px;">📊 데이터 추출 (엑셀)</div>
+    <div class="export-filters">
+      <div class="export-filter">
+        <label>시작일</label>
+        <input type="date" id="exportStart" class="fi" style="width:160px;">
+      </div>
+      <div class="export-filter">
+        <label>종료일</label>
+        <input type="date" id="exportEnd" class="fi" style="width:160px;">
+      </div>
+      <div class="export-filter">
+        <label>통역사</label>
+        <select id="exportInterp" class="fi" style="width:150px;">
+          <option value="all">전체</option>
+        </select>
+      </div>
+      <div class="export-filter">
+        <label>구분</label>
+        <select id="exportType" class="fi" style="width:130px;">
+          <option value="all">전체</option>
+          <option value="normal">일반</option>
+          <option value="regular">정례</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="exportExcel()">📥 엑셀 다운로드</button>
+  </div>
+</div>
+
+<!-- ── 범례 ── -->
+<div class="legend">
+  <div class="legend-title">범례</div>
+  <div class="legend-items">
+    <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-color:#86efac;"></div><span class="legend-text">문의 가능 (일반 신청)</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-color:#93c5fd;"></div><span class="legend-text">연장 협의 필요</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#fff1f2,#ffe4e6);border-color:#fca5a5;"></div><span class="legend-text">신청 불가</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border-color:#fcd34d;"></div><span class="legend-text">🔒 긴급 잠금 (D+3 영업일 이전)</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#fca5a5,#f87171);border-color:#ef4444;"></div><span class="legend-text">예약됨 (일반)</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#86efac,#4ade80);border-color:#22c55e;"></div><span class="legend-text">예약됨 (정례)</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#a5b4fc,#818cf8);border-color:#6366f1;"></div><span class="legend-text">예약됨 (연장)</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#fef3c7,#fde047);border-color:#f59e0b;"></div><span class="legend-text">휴식</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#f3f4f6,#e5e7eb);border-color:#d1d5db;"></div><span class="legend-text">한도초과</span></div>
+  </div>
+</div>
+</div><!-- /container -->
+
+<!-- ════ 모달: 회의 추가 (관리자) ════ -->
+<div id="meetingModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-title">회의 추가</div>
+    <div id="mtgExtBadge" class="ext-badge" style="display:none;">🔵 연장 시간대</div>
+    <div class="fg"><label>통역사</label><div id="mtgInterp" class="fd"></div></div>
+    <div class="fg"><label>시작 시간</label><div id="mtgStart" class="fd"></div></div>
+    <div class="fg"><label>회의 제목</label><input id="mtgTitle" class="fi" type="text" placeholder="회의 제목 입력"></div>
+    <div class="fg"><label>소요 시간</label>
+      <select id="mtgDuration" class="fi">
+        <option value="30">30분</option><option value="60" selected>1시간</option><option value="90">1시간 30분</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeMtgModal()">취소</button>
+      <button class="btn btn-primary" id="mtgSaveBtn" onclick="saveMeeting()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ 모달: 예약 신청 (신청자) ════ -->
+<div id="reservationModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-title">📩 통역 신청 문의</div>
+    <div id="resExtBadge" class="ext-badge" style="display:none;">🔵 연장 시간대 — 통역사 동의 필요</div>
+    <!-- 안내 배너 -->
+    <div id="resNoticeBanner" style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#92400e;line-height:1.7;">
+      ℹ️ 신청서 접수 후 <strong>관리자 검토·배정</strong>이 이루어집니다.<br>
+      배정 가능 여부는 검토 후 별도 안내 드립니다.
+    </div>
+    <div id="resExtNoticeBanner" style="display:none;background:#eff6ff;border:1.5px solid #93c5fd;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#1e40af;line-height:1.7;">
+      🔵 <strong>연장 시간대(08–09 / 19–21시)</strong> 신청입니다.<br>
+      담당 통역사의 동의가 추가로 필요하며, 승인까지 시간이 더 소요될 수 있습니다.
+    </div>
+    <div class="fg"><label>선택 시간</label><div id="resTime" class="fd"></div></div>
+    <!-- 외부 신청서 링크 (서버 연결 시 활성화) -->
+    <div id="resExternalLinkWrap" style="margin-bottom:14px;display:none;">
+      <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">💡 사내 신청서 시스템을 이용하시려면:</div>
+      <a id="resExternalLink" href="#" target="_blank"
+         style="display:inline-flex;align-items:center;gap:6px;background:#f0fdf4;color:#16a34a;border:1.5px solid #86efac;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
+        📋 사내 신청서 바로가기 →
+      </a>
+    </div>
+    <div class="fg"><label>회의 제목 *</label><input id="resTitle" class="fi" type="text" placeholder="회의 제목 입력"></div>
+    <div class="fg"><label>신청자 이름 *</label><input id="resName" class="fi" type="text" placeholder="이름 입력"></div>
+    <div class="fg"><label>연락처</label><input id="resContact" class="fi" type="text" placeholder="연락처 입력"></div>
+    <div class="fg"><label>소요 시간 *</label>
+      <select id="resDuration" class="fi">
+        <option value="30">30분</option><option value="60" selected>1시간</option><option value="90">1시간 30분</option>
+      </select>
+    </div>
+    <div class="fg"><label>추가 요청사항</label><textarea id="resNotes" class="fi" rows="2" placeholder="특별 요청사항 또는 문의 내용 입력"></textarea></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeResModal()">취소</button>
+      <button class="btn btn-primary" id="resSaveBtn" onclick="submitReservation()">신청 접수</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ 모달: 정례 신청 ════ -->
+<div id="regularModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-title">🔁 정례 통역 신청</div>
+    <div class="fg"><label>회의 제목 *</label><input id="regTitle" class="fi" type="text" placeholder="정례 회의명 입력"></div>
+    <div class="fg"><label>신청자 이름 *</label><input id="regRequester" class="fi" type="text" placeholder="이름 입력"></div>
+    <div class="fg"><label>시작 시간</label>
+      <select id="regTime" class="fi"></select>
+    </div>
+    <div class="fg"><label>소요 시간</label>
+      <select id="regDuration" class="fi">
+        <option value="30">30분</option><option value="60" selected>1시간</option><option value="90">1시간 30분</option>
+      </select>
+    </div>
+    <div class="fg"><label>반복 요일</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;" id="regDays">
+        <label style="font-size:12px;font-weight:500;"><input type="checkbox" value="1"> 월</label>
+        <label style="font-size:12px;font-weight:500;"><input type="checkbox" value="2"> 화</label>
+        <label style="font-size:12px;font-weight:500;"><input type="checkbox" value="3"> 수</label>
+        <label style="font-size:12px;font-weight:500;"><input type="checkbox" value="4"> 목</label>
+        <label style="font-size:12px;font-weight:500;"><input type="checkbox" value="5"> 금</label>
+      </div>
+    </div>
+    <div class="fg"><label>반복 주기</label>
+      <select id="regCycle" class="fi" onchange="updateRegularPreview()">
+        <option value="every">매주</option>
+        <option value="biweekly">격주</option>
+        <option value="monthly1">매월 1번째 주</option>
+        <option value="monthly2">매월 2번째 주</option>
+        <option value="monthly3">매월 3번째 주</option>
+        <option value="monthly4">매월 4번째 주</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <div class="fg" style="flex:1;"><label>시작일</label><input id="regStart" class="fi" type="date" onchange="updateRegularPreview()"></div>
+      <div class="fg" style="flex:1;"><label>종료일</label><input id="regEnd" class="fi" type="date" onchange="updateRegularPreview()"></div>
+    </div>
+    <div class="fg">
+      <label>예상 일정 미리보기</label>
+      <div id="regPreview" class="recur-preview">설정을 완료하면 일정이 표시됩니다.</div>
+      <div class="holiday-note" id="regHolidayNote"></div>
+    </div>
+    <div class="fg"><label>추가 요청사항</label><textarea id="regNotes" class="fi" rows="2" placeholder="요청사항 입력"></textarea></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeRegularModal()">취소</button>
+      <button class="btn btn-primary" onclick="submitRegular()">정례 신청</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ 모달: 통역사 추가/수정 ════ -->
+<div id="interpModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-title" id="interpModalTitle">통역사 추가</div>
+    <div class="fg"><label>이름 *</label><input id="interpName" class="fi" type="text" placeholder="통역사 이름"></div>
+    <div class="fg"><label>사번</label><input id="interpId" class="fi" type="text" placeholder="사번 (선택)"></div>
+    <div class="fg"><label>메모</label><input id="interpMemo" class="fi" type="text" placeholder="특이사항 등 (선택)"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeInterpModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveInterp()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ 모달: 통역사 가능시간 등록 ════ -->
+<div id="availModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-title">⏰ 가능 시간 등록</div>
+    <div class="fg"><label>통역사</label><div id="availInterpName" class="fd"></div></div>
+    <div class="divider"></div>
+    <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:10px;">📅 특정 날짜 등록</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+      <div class="fg" style="flex:1;margin-bottom:0;"><label>날짜</label><input id="availDate" class="fi" type="date"></div>
+      <div class="fg" style="flex:1;margin-bottom:0;"><label>시작</label><select id="availStartTime" class="fi"></select></div>
+      <div class="fg" style="flex:1;margin-bottom:0;"><label>종료</label><select id="availEndTime" class="fi"></select></div>
+    </div>
+    <button class="btn btn-blue btn-sm" onclick="addAvailDate()" style="margin-bottom:12px;">+ 추가</button>
+    <div id="availDateList" class="avail-chips"></div>
+    <div class="divider"></div>
+    <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:10px;">🔄 요일별 반복 등록</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+      <div class="fg" style="flex:1;margin-bottom:0;"><label>요일</label>
+        <select id="availDow" class="fi">
+          <option value="1">월요일</option><option value="2">화요일</option><option value="3">수요일</option>
+          <option value="4">목요일</option><option value="5">금요일</option>
+        </select>
+      </div>
+      <div class="fg" style="flex:1;margin-bottom:0;"><label>시작</label><select id="availRStartTime" class="fi"></select></div>
+      <div class="fg" style="flex:1;margin-bottom:0;"><label>종료</label><select id="availREndTime" class="fi"></select></div>
+    </div>
+    <button class="btn btn-blue btn-sm" onclick="addAvailRecurring()" style="margin-bottom:12px;">+ 반복 추가</button>
+    <div id="availRecurringList" class="avail-chips"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeAvailModal()">닫기</button>
+      <button class="btn btn-primary" onclick="saveAvailability()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ 모달: 예약 신청 목록 (관리자) ════ -->
+<div id="pendingModal" class="modal">
+  <div class="modal-box" style="max-width:600px;">
+    <div class="modal-title">📋 예약 신청 목록</div>
+    <div id="pendingList"></div>
+    <div class="modal-btns"><button class="btn btn-secondary" onclick="closePendingModal()">닫기</button></div>
+  </div>
+</div>
+
+<!-- ════ 모달: 수기 블록 추가 (관리자) ════ -->
+<div id="manualBlockModal" class="modal">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-title">🚫 수기 블록 추가</div>
+    <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#92400e;line-height:1.6;">
+      ⚠️ 선택한 요일·시간대를 <strong>매주 반복 불가</strong>로 처리합니다.<br>
+      해당 슬롯에는 새 정례 신청이 차단됩니다.
+    </div>
+    <div class="fg"><label>요일</label>
+      <select id="blockDow" class="fi">
+        <option value="1">월요일</option><option value="2">화요일</option>
+        <option value="3">수요일</option><option value="4">목요일</option><option value="5">금요일</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <div class="fg" style="flex:1;"><label>시작 시간</label><select id="blockStart" class="fi"></select></div>
+      <div class="fg" style="flex:1;"><label>종료 시간</label><select id="blockEnd" class="fi"></select></div>
+    </div>
+    <div class="fg"><label>사유 (선택)</label><input id="blockReason" class="fi" type="text" placeholder="예: 정기 회의 고정, 예비 시간 확보 등"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeManualBlockModal()">취소</button>
+      <button class="btn btn-red" onclick="saveManualBlock()">블록 추가</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   [섹션] 공휴일 데이터 (2025-2026 한국+일본)
+
+   ▸ KR_HOLIDAYS : 한국 공휴일 Set
+       - 긴급 신청의 D+3 영업일 계산 시 "건너뛸 날짜" 판정에 사용
+       - 주말과 함께 제외 → 실제 영업일만 카운트
+   ▸ JP_HOLIDAYS : 일본 공휴일 Set
+       - 화면상 🎌 표시(스케줄 뷰의 휴일 하이라이트)에만 사용
+       - D+3 영업일 계산에는 영향 없음 (일본 공휴일은 카운트됨)
+   ▸ HOLIDAYS    : KR + JP 합산 Set
+       - isHoliday() 체크 → 슬롯 상태를 'holiday'로 처리
+       - 정례 탭 신청 불가 판정에도 사용
+
+   [백엔드 연동 시] holiday_calendar 테이블로 대체
+   → GET /api/holidays?country=KR&year=YYYY 형태로 조회 권장
+   [데이터 갱신] 연도 변경 시 KR_HOLIDAYS / JP_HOLIDAYS 배열 갱신 필요
+═══════════════════════════════════════════════════════════════ */
+/* 한국 공휴일 — 버퍼 영업일 계산에 사용 (제외 대상) */
+var KR_HOLIDAYS = new Set([
+  '2025-01-01','2025-01-28','2025-01-29','2025-01-30',
+  '2025-03-01','2025-05-05','2025-05-06','2025-06-06',
+  '2025-08-15','2025-10-03','2025-10-05','2025-10-06','2025-10-07','2025-10-08','2025-10-09',
+  '2025-12-25',
+  '2026-01-01','2026-02-17','2026-02-18','2026-02-19',
+  '2026-03-01','2026-05-05','2026-06-06',
+  '2026-08-17','2026-09-24','2026-09-25','2026-09-26',
+  '2026-10-03','2026-10-09','2026-12-25'
+]);
+
+/* 일본 공휴일 — 스케줄 표시용 (버퍼 계산 무관) */
+var JP_HOLIDAYS = new Set([
+  '2025-01-01','2025-01-13','2025-02-11','2025-02-23','2025-02-24',
+  '2025-03-20','2025-04-29','2025-05-03','2025-05-04','2025-05-05','2025-05-06',
+  '2025-07-21','2025-08-11','2025-09-15','2025-09-23',
+  '2025-10-13','2025-11-03','2025-11-23','2025-11-24','2025-12-23',
+  '2026-01-01','2026-01-12','2026-02-11','2026-02-23',
+  '2026-03-20','2026-04-29','2026-05-03','2026-05-04','2026-05-05','2026-05-06',
+  '2026-07-20','2026-08-11','2026-09-21','2026-09-22','2026-09-23',
+  '2026-10-12','2026-11-03','2026-11-23'
+]);
+
+/* 전체 공휴일 (한+일) — 스케줄/정례 표시에 사용 */
+var HOLIDAYS = (function(){
+  var s=new Set();
+  KR_HOLIDAYS.forEach(function(d){s.add(d);});
+  JP_HOLIDAYS.forEach(function(d){s.add(d);});
+  return s;
+})();
+
+function isHoliday(dateStr){ return HOLIDAYS.has(dateStr); }
+function isKrHoliday(dateStr){ return KR_HOLIDAYS.has(dateStr); }
+
+/* ═══════════════════════════════════════════════════════════════
+   [섹션] 긴급 신청 버퍼(D+3 영업일) 계산
+
+   비즈니스 규칙:
+   - 긴급 신청은 "오늘 기준 D+3 영업일" 이후 날짜만 신청 가능
+   - 영업일 카운트 시 제외 조건: 주말(토/일) + 한국 공휴일
+   - 일본 공휴일은 제외하지 않음 (영업일로 간주)
+
+   예시)
+     오늘 수요일, 목요일=한국 공휴일 → D+3 = 다음주 화요일
+     오늘 수요일, 목요일=일본 공휴일 → D+3 = 다음주 월요일
+
+   [백엔드 연동 시] POST /api/schedule/buffer-open-date 로 서버 계산 결과 수신 권장
+   [관련 Story] Story 3-2: 긴급 신청 D+3 영업일 잠금 규칙 구현
+═══════════════════════════════════════════════════════════════ */
+var EXTERNAL_LINK = ''; // 외부 신청서 URL — 실제 배포 시 환경변수 또는 관리자 설정으로 교체
+
+function calcBufferOpenDate(){
+  var cur = new Date();
+  var count = 0;
+  while(count < 3){
+    cur = addDays(cur, 1);
+    var ds = dateStr(cur);
+    var dow = cur.getDay(); // 0=일, 6=토
+    if(dow === 0 || dow === 6) continue;  // 주말 제외
+    if(isKrHoliday(ds)) continue;         // 한국 공휴일만 제외
+    count++;
+  }
+  return dateStr(cur); // 오픈되는 최초 날짜
+}
+
+/**
+ * 신청자 기준: 선택 날짜가 긴급 버퍼 잠금 상태인지 판정
+ * @param {string} targetDateStr - 'YYYY-MM-DD' 형식
+ * @returns {boolean} true이면 긴급 신청 잠김(🔒 표시)
+ * [주의] 일반 신청에는 적용되지 않음. 긴급 신청 행(row)에만 사용.
+ */
+function isBufferLocked(targetDateStr){
+  var openDate = calcBufferOpenDate();
+  return targetDateStr < openDate;
+}
+
+/**
+ * 버퍼 오픈까지 남은 달력 일수 (툴팁 표시용 — 영업일 아닌 달력 일수)
+ * @param {string} targetDateStr - 'YYYY-MM-DD'
+ * @returns {number} 0 이하이면 이미 오픈된 날짜
+ */
+function daysUntilOpen(targetDateStr){
+  var openDate = calcBufferOpenDate();
+  if(targetDateStr >= openDate) return 0;
+  // 달력 일수 차이만 반환 (간단 표시용)
+  var t = parseDate(targetDateStr);
+  var o = parseDate(openDate);
+  return Math.ceil((o - t)/(1000*60*60*24));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   [섹션] 운영 시간 상수
+
+   EXT_BEFORE  = 8  : 연장 시작 시각 (08:00)
+   CORE_START  = 9  : 정규 시작 시각 (09:00)
+   CORE_END    = 19 : 정규 종료 시각 기준 (19:00)
+   CORE_END_MIN= 1110: 18:30(분) — 18:30 슬롯까지 정규로 판정하기 위한 경계
+                       isExt()에서 m >= CORE_END*60+30 일 때만 연장으로 처리
+                       즉, 18:30~19:00 슬롯은 정규(초록), 19:00~ 는 연장(파랑)
+   EXT_AFTER   = 21 : 연장 종료 시각 (21:00)
+
+   [백엔드 연동 시] 이 값들을 환경변수 또는 시스템 설정 테이블로 관리 권장
+═══════════════════════════════════════════════════════════════ */
+var EXT_BEFORE=8, CORE_START=9, CORE_END=19, CORE_END_MIN=1110, EXT_AFTER=21;
+
+/* ═══════════════════════════════════════════════════════════════
+   [섹션] 전역 상태 (STATE)
+
+   현재 프로토타입은 백엔드 DB 없이 이 객체가 모든 데이터를 메모리에 보관.
+   새로고침 시 데이터 소실 → 실서비스에서는 각 항목을 API/DB로 대체해야 함.
+
+   role            : 현재 로그인 역할 ('requester'|'admin'|'interpreter')
+                     [백엔드] SSO/사내 계정 인증 후 서버에서 role 반환
+   selectedDate    : 일별 뷰에서 선택된 날짜 (YYYY-MM-DD)
+   currentInterpId : 통역사 뷰 시 본인 ID (role=interpreter일 때만 유효)
+   weekOffset      : 주별 뷰 주간 이동 오프셋 (0=이번주)
+   monthOffset     : 월별 뷰 월 이동 오프셋 (0=이번달)
+   regWeekOffset   : 정례 탭 주 오프셋 (현재 미사용, 날짜 없는 요일 표 방식)
+   myGroupIds      : 이번 세션에서 신청자가 제출한 정례 그룹 ID 목록
+                     [보안] 신청자 뷰에서 본인 신청 건만 보이게 하는 필터 역할
+                     [백엔드] 서버 인증 세션 기반 본인 조회 API로 대체 필요
+   myReservationIds: 이번 세션에서 신청자가 제출한 일회성 예약 ID 목록
+                     [백엔드] GET /api/reservations?requester=me 로 대체 권장
+
+   --- 데이터 배열 ---
+   interpreters    : 통역사 목록 [{id, name, empId, memo, availability, recurringAvail}]
+                     [백엔드] GET /api/interpreters
+   meetings        : 확정된 미팅/정례 회차 목록 [{id, interpId, title, date, startTime,
+                     endTime, duration, isExt, isRegular, regularGroupId, status, ...}]
+                     [백엔드] GET /api/meetings
+   reservations    : 신청자가 접수한 예약 신청 목록 (pending/approved/rejected)
+                     [백엔드] GET /api/reservations
+   regularGroups   : 정례 신청 그룹 [{id, title, requester, days, cycle, startDate,
+                     endDate, time, duration, notes, status, dates, cancelledDates}]
+                     [백엔드] GET /api/regular-groups
+   manualBlocks    : 관리자가 설정한 수기 블록 [{id, dow, startTime, endTime, reason}]
+                     dow: 1=월, 2=화, 3=수, 4=목, 5=금
+                     [백엔드] GET /api/manual-blocks
+   modal           : 현재 열려있는 모달의 임시 상태 저장용
+═══════════════════════════════════════════════════════════════ */
+var STATE = {
+  role: 'requester',
+  selectedDate: '',
+  currentInterpId: null,
+  weekOffset: 0,
+  monthOffset: 0,
+  regWeekOffset: 0,
+  myGroupIds: [],      // 현재 세션에서 신청자가 직접 제출한 정례 그룹 ID 목록
+  myReservationIds: [], // 현재 세션에서 신청자가 직접 제출한 일회성 예약 ID 목록
+  // 데이터
+  interpreters: [],
+  meetings: [],
+  reservations: [],
+  regularGroups: [],
+  manualBlocks: [],  // {id,dow,startTime,endTime,reason} — 요일 기반 수기 블록
+  modal: {}
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   [섹션] 유틸리티 함수
+═══════════════════════════════════════════════════════════════ */
+/** 숫자를 2자리 문자열로 패딩 (예: 9 → '09') */
+function pad2(n){return(n<10?'0':'')+n;}
+/** 'HH:MM' → 분(integer) 변환 (예: '09:30' → 570) */
+function timeToMin(t){var p=t.split(':');return parseInt(p[0])*60+parseInt(p[1]);}
+/** 분(integer) → 'HH:MM' 변환 (예: 570 → '09:30') */
+function minToTime(m){return pad2(Math.floor(m/60))+':'+pad2(m%60);}
+/**
+ * 해당 시간 슬롯이 연장 시간대인지 판정
+ * 정규: 09:00 ~ 19:00(18:30 슬롯 포함, 즉 18:30~19:00까지)
+ * 연장: 08:00~09:00 / 19:00~21:00 (19:00 슬롯부터 연장)
+ * CORE_END*60+30 = 19*60+30 = 1170분(19:30) 이상이면 연장
+ * → 19:00 슬롯(1140분)은 연장, 18:30 슬롯(1110분)은 정규
+ */
+function isExt(time){var m=timeToMin(time);return m<CORE_START*60||m>=CORE_END*60+30;}
+/** Date 객체 → 'YYYY-MM-DD' 문자열 */
+function dateStr(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
+/** 'YYYY-MM-DD' 문자열 → Date 객체 */
+function parseDate(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+/** Date에 n일을 더한 새 Date 반환 */
+function addDays(d,n){var r=new Date(d);r.setDate(r.getDate()+n);return r;}
+/** 오늘 날짜를 'YYYY-MM-DD' 문자열로 반환 */
+function today(){return dateStr(new Date());}
+/** getDay() 숫자 → 한국어 요일 (0=일, 1=월, ..., 6=토) */
+function dowKo(d){return['일','월','화','수','목','금','토'][d];}
+
+/* 시간 슬롯 목록 */
+var TIME_SLOTS=(function(){
+  var s=[];
+  for(var h=EXT_BEFORE;h<EXT_AFTER;h++){
+    s.push({time:pad2(h)+':00',ext:isExt(pad2(h)+':00')});
+    s.push({time:pad2(h)+':30',ext:isExt(pad2(h)+':30')});
+  }
+  return s;
+})();
+
+/* 시간 옵션 채우기 */
+function fillTimeSelect(el){
+  el.innerHTML='';
+  TIME_SLOTS.forEach(function(s){
+    var o=document.createElement('option');
+    o.value=s.time; o.textContent=s.time+(s.ext?' 🔵':'');
+    el.appendChild(o);
+  });
+}
+
+/* ═══════════════════════════════════════
+   초기 데이터 (더미 통역사)
+═══════════════════════════════════════ */
+function initData(){
+  if(STATE.interpreters.length===0){
+    for(var i=1;i<=18;i++){
+      STATE.interpreters.push({id:i,name:'통역사 '+i,empId:'EMP'+pad2(i),memo:'',availability:[],recurringAvail:[]});
+    }
+  }
+  STATE.selectedDate=today();
+  document.getElementById('selectedDate').value=STATE.selectedDate;
+
+  /* ════════════════════════════════════════
+     샘플 데이터 (데모용 미리 블록 처리)
+  ════════════════════════════════════════ */
+  if(STATE.meetings.length===0 && STATE.regularGroups.length===0){
+    var td=new Date();
+    function nextWeekday(base, dow){
+      // dow: 1=월 2=화 3=수 4=목 5=금
+      var d=new Date(base);
+      var cur=d.getDay()||7;
+      var diff=dow-cur; if(diff<=0) diff+=7;
+      d.setDate(d.getDate()+diff); return d;
+    }
+    function ds(d){return dateStr(d);}
+
+    /* ── 정례 그룹 1: 매주 월/수 10:00 임원회의 ── */
+    var rg1={
+      id:'rg-demo-1', title:'임원 주간 보고', requester:'김팀장', days:[1,3],
+      cycle:'every', time:'10:00', duration:60, startDate:'2026-03-17', endDate:'2026-06-17',
+      notes:'매주 월·수 진행', status:'active', dates:[], cancelledDates:[]
+    };
+    // 앞으로 8주치 날짜 생성
+    for(var w=0;w<8;w++){
+      [1,3].forEach(function(dow){
+        var base=new Date(2026,2,17); // 2026-03-17 월
+        var dObj=new Date(base);
+        dObj.setDate(dObj.getDate()+w*7+(dow===3?2:0));
+        var dStr=ds(dObj);
+        rg1.dates.push(dStr);
+        if(!isKrHoliday(dStr)){
+          STATE.meetings.push({
+            id:'m-rg1-'+w+'-'+dow, title:'임원 주간 보고', date:dStr,
+            startTime:'10:00', endTime:'11:00', duration:60,
+            requesterName:'김팀장', interpId:1, isRegular:true,
+            regularGroupId:'rg-demo-1', status:'approved', isExt:false
+          });
+        }
+      });
+    }
+    STATE.regularGroups.push(rg1);
+
+    /* ── 정례 그룹 2: 매주 화 14:00 마케팅 주간회의 ── */
+    var rg2={
+      id:'rg-demo-2', title:'마케팅 주간회의', requester:'이과장', days:[2],
+      cycle:'every', time:'14:00', duration:90, startDate:'2026-03-18', endDate:'2026-06-18',
+      notes:'매주 화요일', status:'active', dates:[], cancelledDates:[]
+    };
+    for(var w2=0;w2<8;w2++){
+      var base2=new Date(2026,2,18); // 2026-03-18 화
+      var dObj2=new Date(base2);
+      dObj2.setDate(dObj2.getDate()+w2*7);
+      var dStr2=ds(dObj2);
+      rg2.dates.push(dStr2);
+      if(!isKrHoliday(dStr2)){
+        STATE.meetings.push({
+          id:'m-rg2-'+w2, title:'마케팅 주간회의', date:dStr2,
+          startTime:'14:00', endTime:'15:30', duration:90,
+          requesterName:'이과장', interpId:2, isRegular:true,
+          regularGroupId:'rg-demo-2', status:'approved', isExt:false
+        });
+      }
+    }
+    STATE.regularGroups.push(rg2);
+
+    /* ── 정례 그룹 3: 매주 금 16:00 사업부 보고 (승인 대기 중) ── */
+    var rg3={
+      id:'rg-demo-3', title:'사업부 주간 보고', requester:'박부장', days:[5],
+      cycle:'every', time:'16:00', duration:60, startDate:'2026-03-21', endDate:'2026-06-21',
+      notes:'매주 금요일', status:'pending', dates:[], cancelledDates:[]
+    };
+    for(var w3=0;w3<3;w3++){
+      var base3=new Date(2026,2,21); // 2026-03-21 금
+      var dObj3=new Date(base3);
+      dObj3.setDate(dObj3.getDate()+w3*7);
+      var dStr3=ds(dObj3);
+      rg3.dates.push(dStr3);
+      STATE.meetings.push({
+        id:'m-rg3-'+w3, title:'사업부 주간 보고', date:dStr3,
+        startTime:'16:00', endTime:'17:00', duration:60,
+        requesterName:'박부장', interpId:3, isRegular:true,
+        regularGroupId:'rg-demo-3', status:'pending', isExt:false
+      });
+    }
+    STATE.regularGroups.push(rg3);
+
+    /* ── 수기 블록 (정례 탭) ── */
+    STATE.manualBlocks.push(
+      {id:'mb-1', dow:4, startTime:'11:00', endTime:'12:00', reason:'내부 교육 (목요일)'},
+      {id:'mb-2', dow:1, startTime:'15:00', endTime:'16:00', reason:'전체 회의 (월요일)'}
+    );
+
+    /* ── 일회성 미팅 샘플 ── */
+    // 이번주 / 다음주 일회성 일정 블록
+    var mon = nextWeekday(td, 1); // 이번주 또는 다음주 월요일
+    var wed = nextWeekday(td, 3);
+    var thu = nextWeekday(td, 4);
+
+    STATE.meetings.push({
+      id:'m-once-1', title:'해외 파트너사 미팅', date:ds(mon),
+      startTime:'09:00', endTime:'10:30', duration:90,
+      requesterName:'최대리', interpId:4, isRegular:false,
+      regularGroupId:null, status:'approved', isExt:false
+    });
+    STATE.meetings.push({
+      id:'m-once-2', title:'신규 계약 협상', date:ds(wed),
+      startTime:'13:00', endTime:'14:30', duration:90,
+      requesterName:'정차장', interpId:5, isRegular:false,
+      regularGroupId:null, status:'approved', isExt:false
+    });
+    STATE.meetings.push({
+      id:'m-once-3', title:'글로벌 컨퍼런스 통역', date:ds(thu),
+      startTime:'10:00', endTime:'12:00', duration:120,
+      requesterName:'오팀장', interpId:6, isRegular:false,
+      regularGroupId:null, status:'pending', isExt:false
+    });
+    // 연장 시간대 일회성
+    STATE.meetings.push({
+      id:'m-once-4', title:'긴급 계약 검토', date:ds(mon),
+      startTime:'08:00', endTime:'09:00', duration:60,
+      requesterName:'한과장', interpId:7, isRegular:false,
+      regularGroupId:null, status:'approved', isExt:true
+    });
+    // 예약 목록에도 추가 (신청자 뷰 확인용)
+    STATE.reservations.push({
+      id:'res-1', title:'글로벌 컨퍼런스 통역', date:ds(thu),
+      startTime:'10:00', endTime:'12:00', duration:120,
+      name:'오팀장', dept:'글로벌사업부', isExt:false,
+      isRegular:false, regularGroupId:null, status:'pending'
+    });
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   [섹션] 탭 전환
+
+   탭 목록: daily(일별) / weekly(주별) / monthly(월별) / regular(정례) / manage(관리)
+   - 관리(manage) 탭은 관리자만 노출 (HTML에서 role 체크 → Story 1-2)
+   - 탭 전환 시 해당 렌더 함수 호출하여 최신 STATE 기반으로 재렌더링
+═══════════════════════════════════════════════════════════════ */
+function switchTab(name){
+  document.querySelectorAll('.tab-btn').forEach(function(b,i){
+    var tabs=['daily','weekly','monthly','regular','manage'];
+    b.classList.toggle('active',tabs[i]===name);
+  });
+  document.querySelectorAll('.tab-content').forEach(function(c){c.classList.remove('active');});
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='daily')   renderDaily();
+  if(name==='weekly')  renderWeekly();
+  if(name==='monthly') renderMonthly();
+  if(name==='regular') renderRegular();
+  if(name==='manage')  renderManage();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   [섹션] 일별 뷰 렌더링
+
+   역할별 표시 방식:
+   ▸ requester(신청자)
+     - renderIntegratedRow() 호출 → "일반 신청" / "긴급 신청" 2줄 통합 행 표시
+     - 배정된 슬롯은 '불가예상'으로만 표시 (회의명/담당자 비공개 — Story 3.7)
+     - 긴급 신청 행: D+3 영업일 이전은 🔒 잠금 표시
+   ▸ interpreter(통역사)
+     - 본인 행만 표시 (currentInterpId 기준)
+   ▸ admin(관리자)
+     - 모든 통역사 행 표시
+     - 신청 대기(pending) 건수가 있으면 상단에 승인 버튼 배지 표시
+
+   [백엔드 연동 시] GET /api/schedule/daily?date=YYYY-MM-DD&role=... 응답으로 렌더
+═══════════════════════════════════════════════════════════════ */
+function renderDaily(){
+  renderTimeLabelBanners();
+  var list=document.getElementById('interpreterList');
+  list.innerHTML='';
+  if(STATE.role==='requester'){
+    renderIntegratedRow(list);
+  } else {
+    STATE.interpreters.forEach(function(interp){
+      if(STATE.role==='interpreter'&&STATE.currentInterpId&&interp.id!==STATE.currentInterpId)return;
+      renderInterpRow(list,interp);
+    });
+  }
+  // 관리자: 신청목록 버튼
+  if(STATE.role==='admin'){
+    var pending=STATE.reservations.filter(function(r){return r.status==='pending';});
+    if(pending.length>0){
+      var btn=document.createElement('div');
+      btn.style='text-align:right;margin-bottom:12px;';
+      btn.innerHTML='<button class="btn btn-blue" onclick="openPendingModal()">📋 예약 신청 대기 '+pending.length+'건</button>';
+      list.insertBefore(btn,list.firstChild);
+    }
+  }
+}
+
+function renderTimeLabelBanners(){
+  var banners=document.getElementById('zoneBanners');
+  var labels=document.getElementById('timeLabels');
+  banners.innerHTML=''; labels.innerHTML='';
+  // 구역 배너
+  var zones=[],cur=null;
+  TIME_SLOTS.forEach(function(s){
+    var t=s.ext?'ext':'core';
+    if(!cur||cur.type!==t){cur={type:t,count:1};zones.push(cur);}else{cur.count++;}
+  });
+  zones.forEach(function(z){
+    var b=document.createElement('div');
+    b.className='zone-badge '+z.type;
+    b.style.flex=z.count;
+    b.textContent=z.type==='ext'?'연장':'정규 (09:00–19:00)';
+    banners.appendChild(b);
+  });
+  // 레이블
+  TIME_SLOTS.forEach(function(s){
+    var d=document.createElement('div');
+    d.className='th-slot'+(s.ext?' ext':'');
+    d.textContent=s.time;
+    labels.appendChild(d);
+  });
+}
+
+/**
+ * [일별 뷰] 신청자용 통합 2줄 행 렌더링
+ * - 1줄: 일반 신청 (초록 테두리, 버퍼 잠금 없음)
+ * - 2줄: 긴급 신청 (노랑 테두리, D+3 영업일 이전 잠금)
+ *
+ * 슬롯 상태 케이스:
+ *   1. 휴일/주말     → 회색 '휴일' 표시
+ *   2. 긴급 잠금     → 🔒 잠김 (긴급 행만)
+ *   3. 모두 배정됨   → 빨간 '불가예상' (회의명 비공개)
+ *   4. 연장 시간대   → 파란 '연장 협의필요' (클릭 가능)
+ *   5. 정규 신청가능 → 초록 '협의 필요' (클릭 시 신청 모달)
+ */
+function renderIntegratedRow(container){
+  var openDate = calcBufferOpenDate();
+  var isHol = isHoliday(STATE.selectedDate);
+  var dow = parseDate(STATE.selectedDate).getDay();
+  var isWeekend = (dow===0||dow===6);
+  var isUnavailableDay = isHol || isWeekend;
+
+  /* ── 일반용 행 (버퍼 잠금 없음 — 항상 오픈) ── */
+  _buildIntegratedRow(container, {
+    label: '일반 신청',
+    subLabel: isUnavailableDay ? '휴일 (신청 불가)' : '상시 협의 가능',
+    subColor: isUnavailableDay ? '#ef4444' : '#16a34a',
+    borderColor: '#00C300',
+    bgGrad: 'linear-gradient(135deg,#f0fdf4,#ecfdf5)',
+    iconColor: '#00C300',
+    isEmergency: false,
+    isUnavailableDay: isUnavailableDay,
+    locked: false,        // 일반용은 절대 잠금 없음
+    openDate: openDate
+  });
+
+  /* ── 긴급용 행 (D+3 영업일 기준 잠금) ── */
+  var emergencyLocked = isBufferLocked(STATE.selectedDate);
+  _buildIntegratedRow(container, {
+    label: '긴급 신청',
+    subLabel: isUnavailableDay ? '휴일 (신청 불가)' : (emergencyLocked ? '🔒 '+openDate+' 오픈' : '긴급 협의 가능'),
+    subColor: isUnavailableDay ? '#ef4444' : (emergencyLocked ? '#f59e0b' : '#dc2626'),
+    borderColor: '#f59e0b',
+    bgGrad: 'linear-gradient(135deg,#fffbeb,#fef9ec)',
+    iconColor: '#d97706',
+    isEmergency: true,
+    isUnavailableDay: isUnavailableDay,
+    locked: emergencyLocked,
+    openDate: openDate
+  });
+}
+
+function _buildIntegratedRow(container, opts){
+  var row=document.createElement('div');
+  row.className='interp-row';
+  row.style='background:'+opts.bgGrad+';border:2px solid '+opts.borderColor+';';
+
+  var info=document.createElement('div');
+  info.className='interp-info';
+  var icon = opts.isEmergency
+    ? '<svg width="22" height="22" fill="none" stroke="'+opts.iconColor+'" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>'
+    : '<svg width="22" height="22" fill="currentColor" style="color:'+opts.iconColor+';flex-shrink:0;"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>';
+  info.innerHTML=icon+'<div><div class="interp-name" style="color:'+opts.iconColor+';">'+opts.label+'</div><div style="font-size:10px;color:'+opts.subColor+';margin-top:3px;">'+opts.subLabel+'</div></div>';
+
+  var slots=document.createElement('div');
+  slots.className='slots-wrap';
+
+  TIME_SLOTS.forEach(function(s,i){
+    var avail=getAvailableInterpreters(i,STATE.selectedDate);
+    var el=document.createElement('div');
+
+    /* 케이스 1: 휴일/주말 */
+    if(opts.isUnavailableDay){
+      el.className='slot slot-unavailable';
+      el.innerHTML='<div style="font-size:9px;color:#fca5a5;font-weight:600;">휴일</div>';
+      el.title=s.time+' — 휴일 신청 불가';
+      el.style.cursor='default';
+
+    /* 케이스 2: 긴급용 잠금 */
+    } else if(opts.locked){
+      el.className='slot slot-locked';
+      el.innerHTML='<div style="text-align:center;line-height:1.3;"><div style="font-size:11px;">🔒</div><div style="font-size:8px;color:#f59e0b;font-weight:600;">잠김</div></div>';
+      el.title=s.time+' — '+opts.openDate+' 오픈 예정 (긴급 신청 한정)';
+      el.style.cursor='default';
+
+    /* 케이스 3: 모두 배정됨 → 신청자에게는 "불가예상"으로만 표시 */
+    } else if(avail.length===0){
+      el.className='slot slot-full';
+      el.innerHTML='<div style="text-align:center;line-height:1.3;"><div style="font-size:9px;color:#ef4444;font-weight:700;">불가</div><div style="font-size:8px;color:#ef4444;">예상</div></div>';
+      el.title=s.time+' — 해당 시간은 배정이 어려울 수 있습니다.';
+      el.style.cursor='default';
+
+    /* 케이스 4: 연장 시간대 문의 가능 */
+    } else if(s.ext){
+      el.className='slot slot-extended';
+      el.innerHTML='<div style="text-align:center;line-height:1.3;"><div style="font-size:9px;font-weight:700;color:#2563eb;">연장</div><div style="font-size:8px;color:#3b82f6;">협의필요</div></div>';
+      el.title=s.time+' — 연장 시간대 협의 필요 (통역사 동의 필요)';
+      (function(si,av){el.onclick=function(){openResModal(si,av);};})(i,avail);
+
+    /* 케이스 5: 정규 시간 문의 가능 */
+    } else {
+      el.className='slot slot-available';
+      var txt=opts.isEmergency?'긴급':'협의';
+      el.innerHTML='<div style="text-align:center;line-height:1.3;"><div style="font-size:9px;font-weight:700;color:#16a34a;">'+txt+'</div><div style="font-size:8px;color:#16a34a;">필요</div></div>';
+      el.title=s.time+' — '+(opts.isEmergency?'긴급 신청 — 협의 필요':'협의 필요')+'. 신청서 접수 후 관리자 검토·배정됩니다.';
+      (function(si,av){el.onclick=function(){openResModal(si,av);};})(i,avail);
+    }
+    slots.appendChild(el);
+  });
+  row.appendChild(info); row.appendChild(slots);
+  container.appendChild(row);
+}
+
+/**
+ * [일별 뷰] 개별 통역사 1행 렌더링 (관리자/통역사 뷰)
+ * - 통역사 이름, 당일 누적 배정 시간 표시
+ * - 통역사 본인 뷰: '가능시간 등록' 버튼 표시
+ * - 각 슬롯: buildSlot()으로 상태별 렌더링
+ */
+function renderInterpRow(container,interp){
+  var row=document.createElement('div');
+  row.className='interp-row';
+  var hours=getDailyHours(interp.id,STATE.selectedDate);
+  var hDisp=Math.floor(hours/60)+'시간 '+hours%60+'분';
+  var info=document.createElement('div');
+  info.className='interp-info';
+  var actionBtn='';
+  if(STATE.role==='interpreter'&&interp.id===STATE.currentInterpId){
+    actionBtn='<button class="btn btn-blue btn-sm" onclick="openAvailModal('+interp.id+')" style="margin-top:4px;font-size:10px;padding:3px 7px;">가능시간 등록</button>';
+  }
+  info.innerHTML='<svg width="20" height="20" fill="currentColor" style="color:#00C300;flex-shrink:0;"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg><div><div class="interp-name">'+interp.name+'</div><div class="interp-hours">'+hDisp+' / 4h</div>'+actionBtn+'</div>';
+  var slots=document.createElement('div');
+  slots.className='slots-wrap';
+  TIME_SLOTS.forEach(function(s,i){
+    var st=getSlotStatus(interp.id,i,STATE.selectedDate);
+    var el=document.createElement('div');
+    buildSlot(el,st,s,interp,i);
+    slots.appendChild(el);
+  });
+  row.appendChild(info); row.appendChild(slots);
+  container.appendChild(row);
+}
+
+/**
+ * [일별 뷰] 개별 슬롯 DOM 요소 빌드 (관리자/통역사 뷰 전용)
+ * ※ 신청자 뷰는 _buildIntegratedRow()에서 별도 처리 (정보 비공개)
+ *
+ * @param {HTMLElement} el       - 슬롯 div 요소
+ * @param {Object}      st       - getSlotStatus() 반환값
+ * @param {Object}      slotData - TIME_SLOTS 항목 {time, ext}
+ * @param {Object}      interp   - 통역사 객체
+ * @param {number}      slotIdx  - TIME_SLOTS 인덱스
+ *
+ * 상태별 CSS 클래스:
+ *   occupied        → slot-occupied (빨강) / slot-occupied-ext (보라) / slot-occupied-regular (초록)
+ *   rest            → slot-rest
+ *   limit           → slot-limit
+ *   holiday         → slot-unavailable
+ *   available(admin)→ slot-available 또는 slot-extended, '+' 버튼으로 회의 추가 가능
+ */
+function buildSlot(el,st,slotData,interp,slotIdx){
+  var isExt=slotData.ext;
+  if(st.status==='occupied'){
+    el.className='slot '+(st.isRegular?'slot-occupied-regular':(isExt?'slot-occupied-ext':'slot-occupied'));
+    var title=st.meeting.title.length>8?st.meeting.title.substring(0,8)+'…':st.meeting.title;
+    var delBtn=(STATE.role==='admin')?'<button class="del-btn" onclick="removeMeeting(\''+st.meeting.id+'\',event)">×</button>':'';
+    el.innerHTML='<div style="padding:0 3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;">'+title+delBtn+'</div>';
+    el.title=st.meeting.title+' ('+st.meeting.startTime+'–'+st.meeting.endTime+')';
+  } else if(st.status==='rest'){
+    el.className='slot slot-rest';
+    el.innerHTML='<span style="font-size:10px;">휴식</span>';
+    el.title='휴식 시간';
+  } else if(st.status==='limit'){
+    el.className='slot slot-limit';
+    el.innerHTML='<span style="font-size:10px;">제한</span>';
+  } else if(st.status==='holiday'){
+    el.className='slot slot-unavailable';
+    el.innerHTML='<span style="font-size:9px;">휴일</span>';
+  } else {
+    // available
+    el.className='slot '+(isExt?'slot-extended':'slot-available');
+    if(STATE.role==='admin'){
+      el.innerHTML='<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>';
+      (function(iid,si){el.onclick=function(){openMtgModal(iid,si);};})(interp.id,slotIdx);
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   [섹션] 슬롯 상태 계산 엔진
+
+   통역사 1명 × 슬롯 1개의 상태를 계산하는 핵심 로직.
+   반환되는 status 종류:
+     'holiday'  : 공휴일/주말 (신청 불가)
+     'occupied' : 회의 진행 중 (해당 시간에 미팅 존재)
+     'rest'     : 회의 종료 후 30분 버퍼 (준비시간, 신청 불가)
+     'limit'    : 당일 누적 배정 240분 초과 (한도 도달)
+     'available': 신청 가능
+
+   [백엔드 연동 시] GET /api/schedule/daily?date=&role= 에서 서버가 계산 후 반환
+   [관련 Story] Story 3-1: 슬롯 상태 계산 서비스 구현
+   [검증 규칙]
+     - 회의 종료 후 30분은 rest로 처리 (중첩 금지)
+     - 1일 최대 240분 초과 시 limit 처리
+═══════════════════════════════════════════════════════════════ */
+function getSlotStatus(interpId,slotIdx,date){
+  if(isHoliday(date)) return {status:'holiday'};
+  var slot=TIME_SLOTS[slotIdx];
+  var curMin=timeToMin(slot.time);
+  var dayMeetings=STATE.meetings.filter(function(m){return m.interpId===interpId&&m.date===date&&m.status!=='rejected';});
+  for(var i=0;i<dayMeetings.length;i++){
+    var m=dayMeetings[i];
+    var ms=timeToMin(m.startTime),me=timeToMin(m.endTime);
+    if(curMin>=ms&&curMin<me) return {status:'occupied',meeting:m,isRegular:m.isRegular,isExt:slot.ext};
+  }
+  for(var j=0;j<dayMeetings.length;j++){
+    var m2=dayMeetings[j];
+    var me2=timeToMin(m2.endTime);
+    if(curMin>=me2&&curMin<me2+30) return {status:'rest'};
+  }
+  var hours=getDailyHours(interpId,date);
+  if(hours>=240) return {status:'limit'};
+  return {status:'available'};
+}
+
+/**
+ * 특정 통역사의 특정 날짜 총 배정 시간(분) 계산
+ * rejected 상태 미팅은 제외. 한도 검사에 사용.
+ * @returns {number} 분 단위 누적 시간 (240 이상이면 배정 한도 초과)
+ */
+function getDailyHours(interpId,date){
+  return STATE.meetings
+    .filter(function(m){return m.interpId===interpId&&m.date===date&&m.status!=='rejected';})
+    .reduce(function(acc,m){return acc+m.duration;},0);
+}
+
+/**
+ * 특정 슬롯에 배정 가능한 통역사 목록 반환
+ * 공휴일이면 빈 배열 반환 (신청 불가 처리)
+ * 가용 통역사: getSlotStatus() === 'available'인 사람만 포함
+ * [백엔드 연동] 승인 시 서버에서 재조회 필수 (Story 2-2)
+ * @returns {Array} 가용 통역사 객체 배열
+ */
+function getAvailableInterpreters(slotIdx,date){
+  if(isHoliday(date)) return [];
+  return STATE.interpreters.filter(function(interp){
+    var st=getSlotStatus(interp.id,slotIdx,date);
+    return st.status==='available';
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   [섹션] 주별 뷰
+
+   월~금 5일 기준 주간 시간표. TIME_SLOTS(08:00~21:00, 30분 단위) 전체 행 표시.
+   - 신청자 뷰: 배정된 슬롯은 '불가예상'으로 표시 (회의명 비공개)
+   - 관리자/통역사 뷰: 실제 회의명 칩으로 표시
+   - '가능 N명' 표시는 관리자/신청자에게 보임 (통역사 본인 뷰는 숨김)
+
+   [백엔드 연동 시] GET /api/schedule/weekly?start=YYYY-MM-DD
+═══════════════════════════════════════════════════════════════ */
+function getWeekDates(offset){
+  var base=new Date();
+  base.setDate(base.getDate()-base.getDay()+1+(offset*7)); // 월요일 기준
+  var days=[];
+  for(var i=0;i<5;i++) days.push(addDays(base,i)); // 월~금
+  return days;
+}
+
+function renderWeekly(){
+  var days=getWeekDates(STATE.weekOffset);
+  var t=document.getElementById('weekTitle');
+  t.textContent=dateStr(days[0])+' ~ '+dateStr(days[4]);
+  var table=document.getElementById('weekTable');
+  table.innerHTML='';
+  // 헤더
+  var thead=document.createElement('thead');
+  var hrow=document.createElement('tr');
+  var th0=document.createElement('th');th0.textContent='시간';hrow.appendChild(th0);
+  days.forEach(function(d){
+    var th=document.createElement('th');
+    var ds=dateStr(d);
+    var dow=dowKo(d.getDay());
+    var isToday=ds===today();
+    var hol=isHoliday(ds);
+    th.className=isToday?'today-col':'';
+    th.innerHTML='<div>'+(d.getMonth()+1)+'/'+d.getDate()+' ('+dow+')'+(hol?' 🎌':'')+'</div>';
+    if(hol) th.style.background='#fff5f5';
+    hrow.appendChild(th);
+  });
+  thead.appendChild(hrow);
+  table.appendChild(thead);
+  // 바디: 30분 단위
+  var tbody=document.createElement('tbody');
+  TIME_SLOTS.forEach(function(slot){
+    var tr=document.createElement('tr');
+    var tdTime=document.createElement('td');
+    tdTime.style='font-size:11px;font-weight:600;color:'+(slot.ext?'#3b82f6':'#333')+';white-space:nowrap;padding:4px 6px;';
+    tdTime.textContent=slot.time;
+    tr.appendChild(tdTime);
+    days.forEach(function(d){
+      var ds=dateStr(d);
+      var td=document.createElement('td');
+      td.style='padding:3px;';
+      if(isHoliday(ds)){
+        td.style.background='#fff5f5';
+        td.innerHTML='<div style="font-size:10px;color:#fca5a5;text-align:center;">휴일</div>';
+        tr.appendChild(td);
+        return;
+      }
+      var slotIdx=TIME_SLOTS.indexOf(slot);
+      var cell=document.createElement('div');
+      cell.className='week-cell';
+      // 해당 슬롯에 예약된 건 표시
+      var mtgs=STATE.meetings.filter(function(m){
+        return m.date===ds&&m.status!=='rejected'&&timeToMin(m.startTime)===timeToMin(slot.time);
+      });
+      mtgs.forEach(function(m){
+        var chip=document.createElement('div');
+        if(STATE.role==='requester'){
+          /* 신청자: 회의명/신청자 숨김 → "불가예상"으로만 표시 */
+          chip.className='week-slot occupied';
+          chip.textContent='불가예상';
+          chip.title=slot.time+' — 해당 시간은 배정이 어려울 수 있습니다.';
+        } else {
+          chip.className='week-slot '+(m.isRegular?'regular-occ':'occupied');
+          chip.textContent=m.title.length>12?m.title.substring(0,12)+'…':m.title;
+          chip.title=m.title+' ('+m.startTime+'–'+m.endTime+')';
+        }
+        cell.appendChild(chip);
+      });
+      // 가능 인원 미니 표시
+      var avail=getAvailableInterpreters(slotIdx,ds);
+      if(avail.length>0&&STATE.role!=='interpreter'){
+        var info=document.createElement('div');
+        info.style='font-size:9px;color:'+(slot.ext?'#3b82f6':'#16a34a')+';text-align:right;margin-top:2px;';
+        info.textContent='가능 '+avail.length+'명';
+        cell.appendChild(info);
+      }
+      td.appendChild(cell);
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+}
+
+function changeWeek(d){STATE.weekOffset+=d;renderWeekly();}
+function goToTodayWeek(){STATE.weekOffset=0;renderWeekly();}
+
+/* ═══════════════════════════════════════════════════════════════
+   [섹션] 월별 뷰
+
+   달력 그리드. 날짜 클릭 시 일별 탭으로 이동.
+   - 신청자 뷰: 미팅이 있는 날은 '불가예상 N건'으로만 표시 (회의명 비공개)
+   - 관리자/통역사 뷰: 실제 회의명 이벤트 칩 최대 2개 표시 + '+N건 더'
+   - 공휴일은 배경색 하이라이트 + 🎌 아이콘
+
+   [백엔드 연동 시] GET /api/schedule/monthly?year=YYYY&month=MM
+═══════════════════════════════════════════════════════════════ */
+function renderMonthly(){
+  var now=new Date();
+  now.setMonth(now.getMonth()+STATE.monthOffset);
+  var y=now.getFullYear(),m=now.getMonth();
+  document.getElementById('monthTitle').textContent=y+'년 '+(m+1)+'월';
+  var grid=document.getElementById('monthGrid');
+  grid.innerHTML='';
+  // 요일 헤더
+  ['월','화','수','목','금','토','일'].forEach(function(d,i){
+    var h=document.createElement('div');
+    h.className='month-day-hdr'+(i===5?' sat':i===6?' sun':'');
+    h.textContent=d;
+    grid.appendChild(h);
+  });
+  var firstDay=new Date(y,m,1);
+  var startDow=firstDay.getDay()||7; // 1=월
+  var lastDay=new Date(y,m+1,0).getDate();
+  // 앞 빈칸
+  for(var b=1;b<startDow;b++){
+    var prev=new Date(y,m,1-b+(startDow-1)-(b-1));
+    var cell=makeMonthCell(dateStr(prev),true);
+    grid.insertBefore(cell,grid.children[7+(b-1)]);
+  }
+  // 실제 날짜
+  for(var d2=1;d2<=lastDay;d2++){
+    var ds=y+'-'+pad2(m+1)+'-'+pad2(d2);
+    var cell2=makeMonthCell(ds,false);
+    grid.appendChild(cell2);
+  }
+  // 뒤 빈칸
+  var total=grid.children.length-7;
+  var rem=(7-total%7)%7;
+  for(var a=1;a<=rem;a++){
+    var next=new Date(y,m+1,a);
+    grid.appendChild(makeMonthCell(dateStr(next),true));
+  }
+}
+
+function makeMonthCell(ds,otherMonth){
+  var d=parseDate(ds);
+  var dow=d.getDay();
+  var hol=isHoliday(ds);
+  var isToday=ds===today();
+  var cell=document.createElement('div');
+  cell.className='month-cell'+(otherMonth?' other-month':'')+(isToday?' today':'')+(hol?' holiday-cell':'');
+  var dowClass=dow===0?' sun':dow===6?' sat':hol?' holiday':'';
+  cell.innerHTML='<div class="month-day-num'+dowClass+'">'+d.getDate()+(hol?' 🎌':'')+'</div>';
+  if(hol){
+    var hev=document.createElement('div');
+    hev.className='month-event holiday-ev';
+    hev.textContent='공휴일';
+    cell.appendChild(hev);
+  }
+  // 해당 날짜 예약 표시
+  var dayMtgs=STATE.meetings.filter(function(m){return m.date===ds&&m.status!=='rejected';});
+  if(STATE.role==='requester'){
+    /* 신청자: 건수만 표시, 회의명 숨김 */
+    if(dayMtgs.length>0){
+      var ev=document.createElement('div');
+      ev.className='month-event normal';
+      ev.textContent='불가예상 '+dayMtgs.length+'건';
+      ev.title=ds+' — 배정된 일정이 있어 해당 날짜는 일부 시간대 배정이 어려울 수 있습니다.';
+      cell.appendChild(ev);
+    }
+  } else {
+    dayMtgs.slice(0,2).forEach(function(m){
+      var ev=document.createElement('div');
+      ev.className='month-event '+(m.isRegular?'regular':'normal');
+      ev.textContent=m.title.length>10?m.title.substring(0,10)+'…':m.title;
+      ev.title=m.title+' '+m.startTime;
+      cell.appendChild(ev);
+    });
+    if(dayMtgs.length>2){
+      var more=document.createElement('div');
+      more.className='month-more';
+      more.textContent='+' +(dayMtgs.length-2)+'건 더';
+      cell.appendChild(more);
+    }
+  }
+  // 클릭하면 해당 날짜로 이동
+  cell.onclick=function(){
+    STATE.selectedDate=ds;
+    document.getElementById('selectedDate').value=ds;
+    switchTab('daily');
+  };
+  return cell;
+}
+
+function changeMonth(d){STATE.monthOffset+=d;renderMonthly();}
+function goToTodayMonth(){STATE.monthOffset=0;renderMonthly();}
+
+/* ═══════════════════════════════════════════════════════════════
+   [섹션] 정례 탭
+
+   반복 일정(정례) 관련 전체 렌더링 로직.
+   두 가지 화면이 역할별로 분리됨:
+
+   ▸ 신청자/통역사 뷰 (regTimetableSection)
+     - 월~금 09:00~19:00 요일별 시간표
+     - 슬롯 상태: 협의필요(초록) / 불가예상(빨강) / 🔒블록(노랑)
+     - [보안] 배정된 슬롯은 회의명/신청자 비공개 → '불가예상'으로만 표시
+     - 협의필요 슬롯 클릭 시 정례 신청 모달 오픈
+     - 신청 후 목록: 본인이 이번 세션에 신청한 건만 표시 (STATE.myGroupIds 기준)
+
+   ▸ 관리자 뷰 (regAdminSection)
+     - 승인 대기 목록 (renderRegPendingList)
+     - 수기 블록 목록 및 추가 (renderManualBlockList)
+     - 요일별 배정 현황 시간표 (renderRegTimetableAdmin) — 회의명 표시
+
+   [데이터 모델] regularGroups + meetings(isRegular=true) + manualBlocks
+   [백엔드 연동 시]
+     POST   /api/regular-groups
+     POST   /api/regular-groups/{id}/approve
+     POST   /api/regular-groups/{id}/reject
+     POST   /api/manual-blocks
+     DELETE /api/manual-blocks/{id}
+   [관련 Story] Epic 4: 정례 신청 엔진
+═══════════════════════════════════════════════════════════════ */
+/* 정례 시간표: 정규 시간대만 (09:00~19:00, 18:30 포함) */
+var REG_SLOTS=(function(){
+  var s=[];
+  for(var h=CORE_START;h<CORE_END;h++){
+    s.push(pad2(h)+':00');
+    s.push(pad2(h)+':30');
+  }
+  s.push('19:00'); // 18:30~19:00 슬롯 추가 (정규 마지막 슬롯)
+  return s;
+})();
+
+/* DOW 이름 */
+var DOW_NAMES=['','월','화','수','목','금'];
+
+/**
+ * 특정 요일+시간에 수기 블록이 설정되어 있는지 확인
+ * 수기 블록: 관리자가 특정 요일·시간대를 매주 반복 불가로 설정한 것
+ * @param {number} dow      - 1=월 ~ 5=금
+ * @param {string} slotTime - 'HH:MM'
+ * @returns {boolean}
+ */
+function isManuallyBlocked(dow, slotTime){
+  return STATE.manualBlocks.some(function(b){
+    return b.dow===dow
+      && timeToMin(b.startTime)<=timeToMin(slotTime)
+      && timeToMin(slotTime)<timeToMin(b.endTime);
+  });
+}
+
+/**
+ * 특정 요일+시간에 해당하는 정례 미팅 목록 반환 (날짜 무관, 요일 기준)
+ * rejected 상태 미팅은 제외. 정례 탭 시간표 렌더링에 사용.
+ * @param {number} dow      - 1=월 ~ 5=금
+ * @param {string} slotTime - 'HH:MM'
+ * @returns {Array} 해당 요일+시간에 걸치는 정례 미팅 배열
+ */
+function getRegularMtgsByDow(dow, slotTime){
+  // 모든 정례 미팅 중 해당 요일이고 시간 범위에 걸리는 것
+  return STATE.meetings.filter(function(m){
+    if(!m.isRegular || m.status==='rejected') return false;
+    var d=parseDate(m.date);
+    var mDow=d.getDay()||7; // 1=월
+    return mDow===dow
+      && timeToMin(m.startTime)<=timeToMin(slotTime)
+      && timeToMin(slotTime)<timeToMin(m.endTime);
+  });
+}
+
+/**
+ * 정례 탭 요일별 시간표 공통 빌드 함수
+ * 신청자 뷰(isAdmin=false)와 관리자 뷰(isAdmin=true)를 공통 로직으로 처리.
+ *
+ * 슬롯 렌더 규칙:
+ *   1. 수기 블록  → 🔒블록 (노랑)
+ *      - 신청자: 툴팁에 사유 미표시 ('신청이 불가합니다')
+ *      - 관리자: 툴팁에 사유 표시 + 클릭으로 해제 가능
+ *   2. 정례 배정됨 → occupied
+ *      - 신청자: '불가예상' (회의명/신청자 비공개 — 3.7 정보 보호)
+ *      - 관리자: 회의명 표시
+ *   3. 가용 없음  → '불가' 표시 (모든 통역사 한도 초과)
+ *   4. 협의 가능  → '협의\n필요' 초록 슬롯
+ *      - 신청자 클릭 시: 다음 해당 요일 날짜로 신청 모달 오픈
+ *
+ * @param {HTMLElement} tableEl - <table> DOM 요소
+ * @param {boolean}     isAdmin - 관리자 뷰 여부
+ */
+function _buildRegTimetable(tableEl, isAdmin){
+  tableEl.innerHTML='';
+  var DOWS=[1,2,3,4,5]; // 월~금
+
+  /* 헤더: 요일만 */
+  var thead=document.createElement('thead');
+  var hrow=document.createElement('tr');
+  var th0=document.createElement('th');
+  th0.className='time-col'; th0.textContent='시간';
+  hrow.appendChild(th0);
+  DOWS.forEach(function(dow){
+    var th=document.createElement('th');
+    th.innerHTML='<div style="font-size:13px;font-weight:700;">'+DOW_NAMES[dow]+'요일</div>';
+    hrow.appendChild(th);
+  });
+  thead.appendChild(hrow);
+  tableEl.appendChild(thead);
+
+  /* 바디 */
+  var tbody=document.createElement('tbody');
+  REG_SLOTS.forEach(function(slotTime){
+    var tr=document.createElement('tr');
+
+    /* 시간 레이블 */
+    var tdTime=document.createElement('td');
+    tdTime.style='background:#f8f9fa;text-align:center;font-size:10px;font-weight:700;color:#16a34a;padding:2px 6px;white-space:nowrap;vertical-align:middle;';
+    tdTime.textContent=slotTime;
+    tr.appendChild(tdTime);
+
+    DOWS.forEach(function(dow){
+      var td=document.createElement('td');
+      td.style='padding:2px;';
+      var cellSlot=document.createElement('div');
+
+      var blocked=isManuallyBlocked(dow,slotTime);
+      var regMtgs=getRegularMtgsByDow(dow,slotTime);
+
+      if(blocked){
+        /* 수기 블록 */
+        cellSlot.className='reg-slot';
+        cellSlot.style='background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;color:#92400e;cursor:'+(isAdmin?'pointer':'default')+';';
+        cellSlot.innerHTML='<span style="font-size:9px;">🔒블록</span>';
+        var blockInfo=STATE.manualBlocks.find(function(b){
+          return b.dow===dow&&timeToMin(b.startTime)<=timeToMin(slotTime)&&timeToMin(slotTime)<timeToMin(b.endTime);
+        });
+        cellSlot.title=(isAdmin?(blockInfo?'블록 사유: '+(blockInfo.reason||'없음'):'수기 블록')+' | 클릭하여 블록 해제':'해당 시간은 신청이 불가합니다.');
+        if(isAdmin&&blockInfo){
+          (function(bid){
+            cellSlot.onclick=function(){
+              if(confirm('이 블록을 해제할까요?')){
+                STATE.manualBlocks=STATE.manualBlocks.filter(function(b){return b.id!==bid;});
+                renderRegular();
+              }
+            };
+          })(blockInfo.id);
+        }
+      } else if(regMtgs.length>0){
+        /* 정례 배정됨 */
+        cellSlot.className='reg-slot occupied';
+        if(isAdmin){
+          /* 관리자: 회의명 표시 */
+          var title=regMtgs[0].title;
+          var shortTitle=title.length>7?title.substring(0,7)+'…':title;
+          cellSlot.textContent=shortTitle;
+          cellSlot.title=regMtgs.map(function(m){return m.title+' '+m.startTime+'–'+m.endTime+' ('+m.requesterName+')';}).join('\n');
+          cellSlot.style.cursor='pointer';
+        } else {
+          /* 신청자: 회의명/신청자 숨김 → "불가예상" */
+          cellSlot.className='reg-slot unavailable';
+          cellSlot.innerHTML='<span style="font-size:9px;">불가<br>예상</span>';
+          cellSlot.title=slotTime+' '+DOW_NAMES[dow]+'요일 — 해당 시간은 배정이 어려울 수 있습니다.';
+        }
+      } else {
+        /* 협의 필요 또는 불가 */
+        /* 통역사 가용 여부: 특정 날짜 없이 요일 기준으로 전체 통역사 수로 판단 */
+        /* 요일 기준 정례 미팅 총 소요시간 합산으로 한도 초과 여부만 확인 */
+        var busyCount=STATE.interpreters.filter(function(interp){
+          /* 해당 요일에 이미 240분 채운 통역사 수 계산 (미팅 목록 중 동일 요일) */
+          var dowMtgs=STATE.meetings.filter(function(m){
+            if(m.interpId!==interp.id||m.status==='rejected') return false;
+            var md=parseDate(m.date); return (md.getDay()||7)===dow;
+          });
+          var totalMin=dowMtgs.reduce(function(s,m){return s+m.duration;},0);
+          return totalMin>=240;
+        }).length;
+        var allFull=(busyCount>=STATE.interpreters.length&&STATE.interpreters.length>0);
+
+        if(allFull){
+          cellSlot.className='reg-slot unavailable';
+          cellSlot.innerHTML='<span style="font-size:9px;">불가</span>';
+          cellSlot.title=slotTime+' '+DOW_NAMES[dow]+'요일 — 모든 통역사 한도 초과';
+        } else {
+          cellSlot.className='reg-slot available';
+          cellSlot.innerHTML='<span>협의<br>필요</span>';
+          cellSlot.title=slotTime+' '+DOW_NAMES[dow]+'요일 — 클릭하여 정례 통역 신청 문의';
+          if(!isAdmin){
+            (function(clickDow,clickTime){
+              cellSlot.onclick=function(){
+                /* 해당 요일의 다음 날짜를 selectedDate로 설정 후 신청 모달 */
+                var nextDate=getNextDowDate(clickDow);
+                STATE.selectedDate=nextDate;
+                document.getElementById('selectedDate').value=nextDate;
+                var si=TIME_SLOTS.findIndex(function(s){return s.time===clickTime;});
+                if(si<0) return;
+                var av=getAvailableInterpreters(si,nextDate);
+                openResModal(si,av);
+              };
+            })(dow,slotTime);
+          }
+        }
+      }
+      td.appendChild(cellSlot);
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  tableEl.appendChild(tbody);
+}
+
+/* 특정 요일(dow=1~5)의 다음 실제 날짜 반환 */
+function getNextDowDate(dow){
+  var d=new Date();
+  var curDow=d.getDay()||7;
+  var diff=dow-curDow;
+  if(diff<=0) diff+=7;
+  d.setDate(d.getDate()+diff);
+  return dateStr(d);
+}
+
+/* ── renderRegTimetable: 신청자/통역사용 요일 시간표 ── */
+function renderRegTimetable(){
+  var tableEl=document.getElementById('regTimetable');
+  if(tableEl) _buildRegTimetable(tableEl, false);
+}
+
+/* ── renderRegTimetableAdmin: 관리자용 요일 시간표 ── */
+function renderRegTimetableAdmin(){
+  var tableEl=document.getElementById('regTimetableAdmin');
+  if(tableEl) _buildRegTimetable(tableEl, true);
+}
+
+/* ── 정례 승인 대기 목록 렌더링 ── */
+function renderRegPendingList(){
+  var el=document.getElementById('regPendingList');
+  if(!el) return;
+  var pending=STATE.regularGroups.filter(function(g){return g.status==='pending';});
+  if(pending.length===0){
+    el.innerHTML='<div style="text-align:center;padding:20px;color:#9ca3af;font-size:13px;">승인 대기 중인 정례 신청이 없습니다.</div>';
+    return;
+  }
+  el.innerHTML='';
+  pending.forEach(function(g){
+    var cycleText={every:'매주',biweekly:'격주',monthly1:'매월 1번째',monthly2:'매월 2번째',monthly3:'매월 3번째',monthly4:'매월 4번째'}[g.cycle]||g.cycle;
+    var daysText=g.days.map(function(d){return DOW_NAMES[d];}).join('/');
+    var card=document.createElement('div');
+    card.style='background:#fffbeb;border:1.5px solid #fcd34d;border-radius:10px;padding:14px 16px;margin-bottom:10px;';
+    card.innerHTML=
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">'+
+        '<div>'+
+          '<div style="font-size:14px;font-weight:700;color:#333;margin-bottom:6px;">'+g.title+'</div>'+
+          '<div style="font-size:12px;color:#666;line-height:1.8;">'+
+            '<div>👤 신청자: '+g.requester+'</div>'+
+            '<div>🔁 '+cycleText+' '+daysText+'요일 &nbsp;|&nbsp; ⏰ '+g.time+' ('+g.duration+'분)</div>'+
+            '<div>📅 '+g.startDate+' ~ '+g.endDate+' &nbsp;|&nbsp; 총 '+g.dates.length+'회</div>'+
+            (g.notes?'<div>📝 '+g.notes+'</div>':'')+
+          '</div>'+
+        '</div>'+
+        '<div style="display:flex;flex-direction:column;gap:6px;min-width:80px;">'+
+          '<button class="btn btn-primary btn-sm" onclick="approveRegularGroup(\''+g.id+'\')">✓ 승인</button>'+
+          '<button class="btn btn-red btn-sm" onclick="rejectRegularGroup(\''+g.id+'\')">✗ 거절</button>'+
+        '</div>'+
+      '</div>';
+    el.appendChild(card);
+  });
+}
+
+/* 정례 신청 승인 */
+function approveRegularGroup(gid){
+  var g=STATE.regularGroups.find(function(x){return x.id===gid;});
+  if(!g) return;
+  g.status='active';
+  /* 해당 그룹의 미팅 상태를 approved로 변경 */
+  STATE.meetings.forEach(function(m){
+    if(m.regularGroupId===gid) m.status='approved';
+  });
+  alert('정례 신청이 승인되었습니다. ('+g.title+')');
+  renderRegular();
+}
+
+/* 정례 신청 거절 */
+function rejectRegularGroup(gid){
+  var reason=prompt('거절 사유:');
+  if(reason===null) return;
+  var g=STATE.regularGroups.find(function(x){return x.id===gid;});
+  if(!g) return;
+  g.status='rejected';
+  g.rejectionReason=reason;
+  STATE.meetings=STATE.meetings.filter(function(m){return m.regularGroupId!==gid;});
+  alert('거절 처리되었습니다.');
+  renderRegular();
+}
+
+/* ── 수기 블록 목록 렌더링 ── */
+function renderManualBlockList(){
+  var el=document.getElementById('manualBlockList');
+  if(!el) return;
+  if(STATE.manualBlocks.length===0){
+    el.innerHTML='<div style="color:#9ca3af;font-size:13px;padding:8px;">등록된 블록이 없습니다.</div>';
+    return;
+  }
+  el.innerHTML='';
+  STATE.manualBlocks.forEach(function(b){
+    var chip=document.createElement('div');
+    chip.style='background:#fff7ed;border:1.5px solid #fcd34d;border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:10px;';
+    chip.innerHTML=
+      '<span style="font-size:13px;font-weight:600;color:#92400e;">🔒 '+DOW_NAMES[b.dow]+'요일 '+b.startTime+'–'+b.endTime+'</span>'+
+      (b.reason?'<span style="font-size:11px;color:#6b7280;">'+b.reason+'</span>':'')+
+      '<button class="btn btn-secondary btn-sm" onclick="removeManualBlock(\''+b.id+'\')">해제</button>';
+    el.appendChild(chip);
+  });
+}
+
+function removeManualBlock(bid){
+  if(!confirm('이 블록을 해제할까요?')) return;
+  STATE.manualBlocks=STATE.manualBlocks.filter(function(b){return b.id!==bid;});
+  renderRegular();
+}
+
+/* ── 수기 블록 모달 ── */
+function openManualBlockModal(){
+  fillTimeSelect(document.getElementById('blockStart'));
+  fillTimeSelect(document.getElementById('blockEnd'));
+  // blockEnd 기본값: blockStart + 30분
+  document.getElementById('blockReason').value='';
+  document.getElementById('manualBlockModal').classList.add('show');
+}
+function closeManualBlockModal(){document.getElementById('manualBlockModal').classList.remove('show');}
+
+function saveManualBlock(){
+  var dow=parseInt(document.getElementById('blockDow').value);
+  var start=document.getElementById('blockStart').value;
+  var end=document.getElementById('blockEnd').value;
+  var reason=document.getElementById('blockReason').value.trim();
+  if(timeToMin(start)>=timeToMin(end)){alert('종료 시간이 시작 시간보다 늦어야 합니다.');return;}
+  STATE.manualBlocks.push({id:Date.now(),dow:dow,startTime:start,endTime:end,reason:reason});
+  closeManualBlockModal();
+  renderRegular();
+}
+
+/**
+ * 정례 탭 전체 렌더링 진입점
+ * - 역할에 따라 신청자 뷰 / 관리자 뷰 섹션 전환
+ * - 정례 그룹 목록 렌더링
+ *   → 신청자: STATE.myGroupIds 기반 본인 신청 건만 표시
+ *   → 관리자: 전체 표시
+ */
+function renderRegular(){
+  var isAdmin=(STATE.role==='admin');
+
+  /* 신청자/통역사: 요일 시간표 표시, 관리자: 숨김 */
+  var tblSection=document.getElementById('regTimetableSection');
+  var adminSection=document.getElementById('regAdminSection');
+  if(tblSection) tblSection.style.display=isAdmin?'none':'block';
+  if(adminSection) adminSection.style.display=isAdmin?'block':'none';
+
+  if(!isAdmin){
+    renderRegTimetable();
+  } else {
+    renderRegPendingList();
+    renderManualBlockList();
+    renderRegTimetableAdmin();
+  }
+
+  var list=document.getElementById('regularList');
+  list.innerHTML='';
+  var addBtn=document.getElementById('addRegularBtn');
+  addBtn.style.display=(STATE.role==='requester'||STATE.role==='admin')?'inline-flex':'none';
+
+  /* 신청자: 본인이 이번 세션에 신청한 건만 표시 */
+  var visibleGroups;
+  if(STATE.role==='requester'){
+    visibleGroups=STATE.regularGroups.filter(function(g){
+      return STATE.myGroupIds.indexOf(g.id)>=0;
+    });
+  } else {
+    visibleGroups=STATE.regularGroups;
+  }
+
+  if(visibleGroups.length===0){
+    if(STATE.role==='requester'){
+      list.innerHTML='<div style="text-align:center;padding:30px 20px;color:#9ca3af;font-size:13px;line-height:1.7;">아직 신청한 정례 일정이 없습니다.<br><span style="font-size:12px;">위 시간표에서 <strong style="color:#16a34a;">협의 필요</strong> 슬롯을 클릭하여 신청하세요.</span></div>';
+    } else {
+      list.innerHTML='<div style="text-align:center;padding:40px;color:#9ca3af;font-size:14px;">등록된 정례 일정이 없습니다.</div>';
+    }
+    return;
+  }
+  visibleGroups.forEach(function(g){
+    var item=document.createElement('div');
+    item.className='regular-item'+(g.status==='active'?'':' inactive');
+    var cycleText={every:'매주',biweekly:'격주',monthly1:'매월 1번째',monthly2:'매월 2번째',monthly3:'매월 3번째',monthly4:'매월 4번째'}[g.cycle]||g.cycle;
+    var daysText=g.days.map(function(d){return DOW_NAMES[d];}).join('/');
+    var activeDates=g.dates.filter(function(d){return !g.cancelledDates.includes(d);});
+    var info=document.createElement('div');
+    info.className='regular-info';
+    info.style='flex:1;';
+    var statusLabel={active:'활성',pending:'승인대기',rejected:'거절',cancelled:'취소'}[g.status]||g.status;
+    var badgeClass=g.status==='active'?'':'inactive';
+    info.innerHTML=
+      '<h4>'+g.title+'<span class="regular-badge '+badgeClass+'">'+statusLabel+'</span></h4>'+
+      '<div class="regular-meta">'+
+        '<div>📅 '+g.startDate+' ~ '+g.endDate+'</div>'+
+        '<div>🔁 '+cycleText+' '+daysText+'요일 &nbsp;|&nbsp; ⏰ '+g.time+' ('+g.duration+'분)</div>'+
+        '<div>👤 신청자: '+g.requester+'&nbsp;|&nbsp; 총 '+activeDates.length+'회 (취소 '+g.cancelledDates.length+'회)</div>'+
+      '</div>';
+    // 날짜 칩
+    var chipWrap=document.createElement('div');
+    chipWrap.className='regular-dates';
+    g.dates.forEach(function(d){
+      var chip=document.createElement('div');
+      var cancelled=g.cancelledDates.includes(d);
+      chip.className='date-chip'+(cancelled?' cancelled':'');
+      chip.textContent=d;
+      chip.title=cancelled?'취소됨':'클릭하여 이 날짜만 취소';
+      if(!cancelled&&isAdmin&&g.status==='active'){
+        (function(date,gid){
+          chip.onclick=function(){
+            if(confirm(date+' 정례 통역을 취소할까요?')){
+              var g2=STATE.regularGroups.find(function(x){return x.id===gid;});
+              if(g2) g2.cancelledDates.push(date);
+              STATE.meetings=STATE.meetings.filter(function(m){return!(m.regularGroupId===gid&&m.date===date);});
+              renderRegular();
+            }
+          };
+        })(d,g.id);
+      }
+      chipWrap.appendChild(chip);
+    });
+    info.appendChild(chipWrap);
+    var actions=document.createElement('div');
+    actions.className='regular-actions';
+    if(isAdmin&&g.status==='active'){
+      actions.innerHTML='<button class="btn btn-red btn-sm" onclick="cancelAllRegular(\''+g.id+'\')">전체 취소</button>';
+    }
+    item.appendChild(info);
+    item.appendChild(actions);
+    list.appendChild(item);
+  });
+}
+
+function cancelAllRegular(gid){
+  if(!confirm('이 정례 일정 전체를 취소할까요?')) return;
+  var g=STATE.regularGroups.find(function(x){return x.id===gid;});
+  if(!g) return;
+  g.status='cancelled';
+  STATE.meetings=STATE.meetings.filter(function(m){return m.regularGroupId!==gid||m.status==='approved';});
+  renderRegular();
+}
+
+/* ═══════════════════════════════════════
+   정례 날짜 계산
+═══════════════════════════════════════ */
+/**
+ * 정례 반복 날짜 목록 계산
+ * 공휴일(한+일), 주말 자동 제외. 수기 블록은 여기서 제외하지 않음(신청 모달에서 검증).
+ *
+ * @param {string} startDate - 'YYYY-MM-DD'
+ * @param {string} endDate   - 'YYYY-MM-DD' (시작일+3개월 이내)
+ * @param {Array}  days      - 요일 배열 [1~5], 1=월
+ * @param {string} cycle     - 'every'|'biweekly'|'monthly1'~'monthly4'
+ * @returns {Array<string>} 'YYYY-MM-DD' 배열
+ *
+ * [검증 규칙] 시작~종료 최대 3개월 (submitRegular에서 강제)
+ * [백엔드 연동 시] 서버에서도 동일 로직으로 검증 필수 (Story 4-1)
+ */
+function calcRegularDates(startDate,endDate,days,cycle){
+  var dates=[];
+  var s=parseDate(startDate),e=parseDate(endDate);
+  var cur=new Date(s);
+  while(cur<=e){
+    var dow=cur.getDay()||7; // 1=월
+    if(days.includes(dow)){
+      var ds=dateStr(cur);
+      if(!isHoliday(ds)){
+        var include=false;
+        if(cycle==='every') include=true;
+        else if(cycle==='biweekly'){
+          var diff=Math.round((cur-s)/(7*24*3600*1000));
+          include=diff%2===0;
+        } else if(cycle.startsWith('monthly')){
+          var nth=parseInt(cycle.replace('monthly',''));
+          var weekOfMonth=Math.ceil(cur.getDate()/7);
+          include=weekOfMonth===nth;
+        }
+        if(include) dates.push(ds);
+      }
+    }
+    cur=addDays(cur,1);
+  }
+  return dates;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   [섹션] 관리 탭 (관리자용)
+
+   - 통역사 CRUD (추가/수정/삭제)
+   - 날짜코드/통역사/구분 필터 엑셌르 추출 (한글 BOM 포함)
+   [노출 제어] 신청자/통역사에게는 관리 탭 자체가 숨김 (HTML 렌더 시 role 체크)
+   [백엔드 연동 시]
+     GET    /api/interpreters
+     POST   /api/interpreters
+     PATCH  /api/interpreters/{id}
+     DELETE /api/interpreters/{id}
+     GET    /api/export/csv?...
+   [관련 Story] Epic 5: 관리자 운영 기능
+═══════════════════════════════════════════════════════════════ */
+function renderManage(){
+  renderInterpManage();
+  // 엑셀 필터 통역사 목록 갱신
+  var sel=document.getElementById('exportInterp');
+  var cur=sel.value;
+  sel.innerHTML='<option value="all">전체</option>';
+  STATE.interpreters.forEach(function(interp){
+    var o=document.createElement('option');
+    o.value=interp.id; o.textContent=interp.name;
+    sel.appendChild(o);
+  });
+  sel.value=cur;
+}
+
+function renderInterpManage(){
+  var list=document.getElementById('interpManageList');
+  list.innerHTML='';
+  STATE.interpreters.forEach(function(interp){
+    var card=document.createElement('div');
+    card.className='interp-card';
+    card.innerHTML=
+      '<div><div class="interp-card-info">'+interp.name+'</div><div class="interp-card-sub">'+(interp.empId||'사번 없음')+(interp.memo?' | '+interp.memo:'')+'</div></div>'+
+      '<div class="interp-card-actions">'+
+        '<button class="btn btn-secondary btn-sm" onclick="openInterpEditModal('+interp.id+')">수정</button>'+
+        '<button class="btn btn-red btn-sm" onclick="deleteInterp('+interp.id+')">삭제</button>'+
+      '</div>';
+    list.appendChild(card);
+  });
+}
+
+/* ═══════════════════════════════════════
+   모달: 회의 추가 (관리자)
+═══════════════════════════════════════ */
+/**
+ * [관리자] 회의 직접 추가 모달 오픈 (STATE.modal 설정)
+ * saveMeeting()에서 문서화 후 STATE.meetings에 블록 새 입력.
+ * [백엔드 연동 시] POST /api/meetings 로 대체
+ */
+function openMtgModal(interpId,slotIdx){
+  var interp=STATE.interpreters.find(function(x){return x.id===interpId;});
+  var slot=TIME_SLOTS[slotIdx];
+  STATE.modal={type:'meeting',interpId:interpId,slotIdx:slotIdx};
+  document.getElementById('mtgInterp').textContent=interp.name;
+  document.getElementById('mtgStart').textContent=slot.time+(slot.ext?' 🔵':'');
+  document.getElementById('mtgStart').className=slot.ext?'fd ext':'fd';
+  document.getElementById('mtgExtBadge').style.display=slot.ext?'inline-flex':'none';
+  document.getElementById('mtgTitle').value='';
+  document.getElementById('mtgDuration').value='60';
+  document.getElementById('mtgSaveBtn').className=slot.ext?'btn btn-blue':'btn btn-primary';
+  document.getElementById('meetingModal').classList.add('show');
+}
+function closeMtgModal(){document.getElementById('meetingModal').classList.remove('show');}
+
+function saveMeeting(){
+  var title=document.getElementById('mtgTitle').value.trim();
+  var dur=parseInt(document.getElementById('mtgDuration').value);
+  if(!title){alert('회의 제목을 입력해주세요.');return;}
+  var interp=STATE.interpreters.find(function(x){return x.id===STATE.modal.interpId;});
+  var hours=getDailyHours(interp.id,STATE.selectedDate);
+  if(hours+dur>240){alert('하루 4시간을 초과할 수 없습니다.');return;}
+  var slot=TIME_SLOTS[STATE.modal.slotIdx];
+  var endTime=minToTime(timeToMin(slot.time)+dur);
+  STATE.meetings.push({
+    id:Date.now(),interpId:interp.id,title:title,date:STATE.selectedDate,
+    startTime:slot.time,endTime:endTime,duration:dur,
+    isExt:slot.ext,isRegular:false,regularGroupId:null,
+    requesterName:'관리자',status:'approved'
+  });
+  closeMtgModal();
+  renderDaily();
+}
+
+function removeMeeting(id,event){
+  if(event){event.stopPropagation();}
+  if(!confirm('이 회의를 삭제할까요?')) return;
+  var idx=STATE.meetings.findIndex(function(m){return m.id==id;});
+  if(idx!==-1) STATE.meetings.splice(idx,1);
+  renderDaily();
+}
+
+/* ═══════════════════════════════════════
+   모달: 예약 신청 (신청자)
+═══════════════════════════════════════ */
+/**
+ * [신청자] 예약 신청 모달 오픈 (새 신청)
+ * 클릭된 슬롯의 시간, 연장 여부를 UI에 표시하고 신청서 이벤트 연동.
+ * [백엔드 연동 시] submitReservation() 로 폼 데이터 POST /api/reservations
+ * @param {number} slotIdx     - TIME_SLOTS 인덱스
+ * @param {Array}  availInterps - 현재 가용 통역사 목록
+ */
+function openResModal(slotIdx,availInterps){
+  var slot=TIME_SLOTS[slotIdx];
+  STATE.modal={type:'reservation',slotIdx:slotIdx,availInterps:availInterps};
+  document.getElementById('resTime').textContent=slot.time+(slot.ext?' 🔵 연장시간':'');
+  document.getElementById('resTime').className=slot.ext?'fd ext':'fd';
+  // 가능 명수는 숨김 — 신청자에게 통역사 배정 상황 노출 안 함
+  document.getElementById('resExtBadge').style.display=slot.ext?'inline-flex':'none';
+  document.getElementById('resNoticeBanner').style.display=slot.ext?'none':'block';
+  document.getElementById('resExtNoticeBanner').style.display=slot.ext?'block':'none';
+  // 외부 신청서 링크 처리
+  var linkWrap=document.getElementById('resExternalLinkWrap');
+  if(EXTERNAL_LINK){
+    linkWrap.style.display='block';
+    var linkEl=document.getElementById('resExternalLink');
+    // 시간 파라미터 자동 첨부 (나중에 실제 URL에 맞게 수정)
+    linkEl.href=EXTERNAL_LINK+'?date='+STATE.selectedDate+'&time='+slot.time;
+  } else {
+    linkWrap.style.display='none';
+  }
+  document.getElementById('resTitle').value='';
+  document.getElementById('resName').value='';
+  document.getElementById('resContact').value='';
+  document.getElementById('resDuration').value='60';
+  document.getElementById('resNotes').value='';
+  document.getElementById('resSaveBtn').className=slot.ext?'btn btn-blue':'btn btn-primary';
+  document.getElementById('reservationModal').classList.add('show');
+}
+function closeResModal(){document.getElementById('reservationModal').classList.remove('show');}
+
+/**
+ * [신청자] 예약 신청 제출
+ * 필수값 검증 후 STATE.reservations에 pending으로 추가
+ * [백엔드 연동 시] POST /api/reservations 응답으로 대체
+ * [검증 규칙]
+ *   - title, name 필수 (400 반환)
+ *   - duration 30/60/90분만 허용 (Story 2-1 AC)
+ *   - 신청 후 STATE.myReservationIds에 ID 추가 (세션 관리용)
+ */
+function submitReservation(){
+  var title=document.getElementById('resTitle').value.trim();
+  var name=document.getElementById('resName').value.trim();
+  if(!title||!name){alert('필수 항목(*)을 입력해주세요.');return;}
+  var dur=parseInt(document.getElementById('resDuration').value);
+  var slot=TIME_SLOTS[STATE.modal.slotIdx];
+  var endTime=minToTime(timeToMin(slot.time)+dur);
+  var res={
+    id:Date.now(),title:title,requesterName:name,
+    contact:document.getElementById('resContact').value.trim(),
+    date:STATE.selectedDate,startTime:slot.time,endTime:endTime,duration:dur,
+    notes:document.getElementById('resNotes').value.trim(),
+    isExt:slot.ext,status:'pending',
+    availInterps:STATE.modal.availInterps.slice(),
+    assignedInterpId:null,
+    requestDate:new Date().toLocaleString('ko-KR')
+  };
+  STATE.reservations.push(res);
+  alert('예약 신청 완료!\n\n회의: '+title+'\n시간: '+slot.time+' – '+endTime+'\n신청자: '+name+'\n\n관리자 승인을 기다려주세요.'+(slot.ext?'\n⚠️ 연장 시간대 신청입니다.':''));
+  closeResModal();
+}
+
+/* ═══════════════════════════════════════
+   모달: 예약 신청 목록 (관리자)
+═══════════════════════════════════════ */
+/**
+ * [관리자] 예약 대기 목록 모달 오픈
+ * pending 상태의 예약을 목록화하여 각 건에 승인/거절 버튼 노출
+ */
+function openPendingModal(){
+  var list=document.getElementById('pendingList');
+  list.innerHTML='';
+  var all=STATE.reservations.filter(function(r){return r.status==='pending';});
+  if(all.length===0){list.innerHTML='<div style="text-align:center;padding:20px;color:#9ca3af;">대기중인 신청이 없습니다.</div>';}
+  all.forEach(function(r){
+    var item=document.createElement('div');
+    item.style='background:#f8f9fa;border-radius:10px;padding:14px;margin-bottom:10px;border:1.5px solid #fbbf24;';
+    var extBadge=r.isExt?'<span style="background:#dbeafe;color:#2563eb;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px;">연장</span>':'';
+    item.innerHTML=
+      '<div style="font-size:14px;font-weight:700;margin-bottom:6px;">'+r.title+extBadge+'</div>'+
+      '<div style="font-size:12px;color:#555;line-height:1.8;">'+
+        '<div>📅 '+r.date+' '+r.startTime+' – '+r.endTime+'</div>'+
+        '<div>👤 '+r.requesterName+(r.contact?' | '+r.contact:'')+'</div>'+
+        (r.notes?'<div>📝 '+r.notes+'</div>':'')+
+      '</div>'+
+      '<div style="display:flex;gap:8px;margin-top:10px;">'+
+        '<button class="btn btn-primary btn-sm" onclick="approveRes('+r.id+')">승인</button>'+
+        '<button class="btn btn-red btn-sm" onclick="rejectRes('+r.id+')">거절</button>'+
+      '</div>';
+    list.appendChild(item);
+  });
+  document.getElementById('pendingModal').classList.add('show');
+}
+function closePendingModal(){document.getElementById('pendingModal').classList.remove('show');}
+
+/**
+ * [관리자] 신청 승인 후 붙일 로직
+ * 1. 해당 시간 가능 통역사 재조회
+ * 2. 당일 누적 배정 시간 최소인 통역사 우선 선택
+ * 3. 가용한 통역사 없으면 배정 실패
+ * 4. meetings에 approved 새 미팅 생성
+ * [백엔드 연동 시] POST /api/reservations/{id}/approve (Story 2-2)
+ * [경고] DB 트랜잭션/낙관적 락 없이 동시 승인 시 중복 배정 가능 → Story 6-2로 해결 필요
+ */
+function approveRes(id){
+  var res=STATE.reservations.find(function(r){return r.id===id;});
+  if(!res) return;
+  // 실시간 가능 통역사 재확인
+  var slotIdx=TIME_SLOTS.findIndex(function(s){return s.time===res.startTime;});
+  var avail=slotIdx!==-1?getAvailableInterpreters(slotIdx,res.date):[];
+  if(avail.length===0){alert('현재 해당 시간에 가능한 통역사가 없습니다.');return;}
+  var best=avail.reduce(function(a,b){return getDailyHours(a.id,res.date)<=getDailyHours(b.id,res.date)?a:b;});
+  STATE.meetings.push({
+    id:Date.now(),interpId:best.id,title:res.title+' ('+res.requesterName+')',
+    date:res.date,startTime:res.startTime,endTime:res.endTime,duration:res.duration,
+    isExt:res.isExt,isRegular:false,regularGroupId:null,
+    requesterName:res.requesterName,status:'approved'
+  });
+  res.status='approved'; res.assignedInterpId=best.id;
+  alert('승인 완료! 배정 통역사: '+best.name);
+  closePendingModal();
+  renderDaily();
+}
+
+/**
+ * [관리자] 신청 거절 및 거절 사유 저장
+ * [백엔드 연동 시] POST /api/reservations/{id}/reject (Story 2-3)
+ * [검증] 거절 사유는 이력 조회 API에서 확인 가능해야 함
+ */
+function rejectRes(id){
+  var reason=prompt('거절 사유:');
+  if(reason===null) return;
+  var res=STATE.reservations.find(function(r){return r.id===id;});
+  if(res){res.status='rejected';res.rejectionReason=reason;}
+  closePendingModal();
+  alert('거절 처리되었습니다.');
+}
+
+/* ═══════════════════════════════════════
+   모달: 정례 신청
+═══════════════════════════════════════ */
+function openRegularModal(){
+  // 기간 기본값: 오늘 ~ 현재월 기준 3개월 후 말일
+  var s=new Date();
+  var maxE=new Date(s.getFullYear(), s.getMonth()+3+1, 0); // 3개월 후 말일
+  document.getElementById('regStart').value=dateStr(s);
+  document.getElementById('regEnd').value=dateStr(maxE);
+  document.getElementById('regTitle').value='';
+  document.getElementById('regRequester').value='';
+  document.getElementById('regNotes').value='';
+  document.getElementById('regCycle').value='every';
+  document.querySelectorAll('#regDays input').forEach(function(c){c.checked=false;});
+  fillTimeSelect(document.getElementById('regTime'));
+  // regTime을 정규 시간대(09:00)로 기본 설정
+  var regTimeEl=document.getElementById('regTime');
+  for(var i=0;i<regTimeEl.options.length;i++){
+    if(regTimeEl.options[i].value==='09:00'){regTimeEl.selectedIndex=i;break;}
+  }
+  updateRegularPreview();
+  document.getElementById('regularModal').classList.add('show');
+}
+function closeRegularModal(){document.getElementById('regularModal').classList.remove('show');}
+
+function updateRegularPreview(){
+  var start=document.getElementById('regStart').value;
+  var end=document.getElementById('regEnd').value;
+  var cycle=document.getElementById('regCycle').value;
+  var days=[];
+  document.querySelectorAll('#regDays input:checked').forEach(function(c){days.push(parseInt(c.value));});
+  if(!start||!end||days.length===0){
+    document.getElementById('regPreview').textContent='요일과 기간을 선택하면 일정이 표시됩니다.';
+    document.getElementById('regHolidayNote').textContent='';
+    return;
+  }
+  // 3개월 이내 체크 (현재 월 기준, 3개월 후 말일까지)
+  var ms=parseDate(start),me=parseDate(end);
+  var maxEnd=new Date(ms.getFullYear(),ms.getMonth()+3+1,0); // 3개월 후 말일
+  if(me>maxEnd){
+    document.getElementById('regEnd').value=dateStr(maxEnd);
+    end=dateStr(maxEnd);
+    me=maxEnd;
+  }
+  var dates=calcRegularDates(start,end,days,cycle);
+  var preview=document.getElementById('regPreview');
+  if(dates.length===0){
+    preview.textContent='해당 조건에 맞는 날짜가 없습니다. (공휴일 제외)';
+  } else {
+    preview.innerHTML=dates.map(function(d){
+      var dt=parseDate(d);
+      return '<span style="display:inline-block;margin:2px 4px;padding:2px 8px;background:#dcfce7;border-radius:12px;font-size:11px;">'+d+' ('+dowKo(dt.getDay())+')</span>';
+    }).join('');
+  }
+  // 공휴일 제외 안내
+  var allDates=calcRegularDates(start,end,days,cycle,true); // 공휴일 포함 전체
+  document.getElementById('regHolidayNote').textContent=
+    '* 한국·일본 공휴일 자동 제외 적용 | 총 '+dates.length+'회';
+}
+
+/**
+ * [신청자/관리자] 정례 신청 제출
+ * 1. 필수값 검증 (title, requester, days, cycle, 시간, 노도)
+ * 2. calcRegularDates()로 반복 날짜 계산 (공휴일/주말 제외)
+ * 3. regularGroups에 pending 새 그룹 생성
+ * 4. 회차별 meetings도 pending으로 생성
+ * 5. STATE.myGroupIds에 gid 추가 (신청자 본인 필터용)
+ * [백엔드 연동 시] POST /api/regular-groups (Story 4-1)
+ * [검증 규칙]
+ *   - 각 요일 1개 이상 선택 필수
+ *   - 시작~종료 최대 3개월 (MAX_REGULAR_MONTHS 상수)
+ *   - 가산 날짜가 0이면 신청 절단
+ */
+function submitRegular(){
+  var title=document.getElementById('regTitle').value.trim();
+  var requester=document.getElementById('regRequester').value.trim();
+  if(!title||!requester){alert('필수 항목을 입력해주세요.');return;}
+  var days=[];
+  document.querySelectorAll('#regDays input:checked').forEach(function(c){days.push(parseInt(c.value));});
+  if(days.length===0){alert('반복 요일을 선택해주세요.');return;}
+  var start=document.getElementById('regStart').value;
+  var end=document.getElementById('regEnd').value;
+  var cycle=document.getElementById('regCycle').value;
+  var time=document.getElementById('regTime').value;
+  var dur=parseInt(document.getElementById('regDuration').value);
+  var dates=calcRegularDates(start,end,days,cycle);
+  if(dates.length===0){alert('해당 조건에 맞는 날짜가 없습니다.');return;}
+  var gid=Date.now();
+  var group={
+    id:gid,title:title,requester:requester,time:time,duration:dur,
+    days:days,cycle:cycle,startDate:start,endDate:end,
+    notes:document.getElementById('regNotes').value.trim(),
+    status:'pending',dates:dates,cancelledDates:[]
+  };
+  STATE.regularGroups.push(group);
+  /* 신청자 본인 세션에 그룹 ID 기록 */
+  STATE.myGroupIds.push(gid);
+  // meetings에도 추가 (pending 상태)
+  dates.forEach(function(d){
+    STATE.meetings.push({
+      id:Date.now()+Math.random(),interpId:null,title:title,date:d,
+      startTime:time,endTime:minToTime(timeToMin(time)+dur),duration:dur,
+      isExt:isExt(time),isRegular:true,regularGroupId:gid,
+      requesterName:requester,status:'pending'
+    });
+  });
+  closeRegularModal();
+  alert('정례 신청 완료!\n총 '+dates.length+'회 일정이 등록되었습니다.\n관리자 승인 후 통역사가 배정됩니다.');
+  renderRegular();
+}
+
+/* ═══════════════════════════════════════
+   모달: 통역사 추가/수정
+═══════════════════════════════════════ */
+function openInterpAddModal(){
+  STATE.modal={type:'interp',editId:null};
+  document.getElementById('interpModalTitle').textContent='통역사 추가';
+  document.getElementById('interpName').value='';
+  document.getElementById('interpId').value='';
+  document.getElementById('interpMemo').value='';
+  document.getElementById('interpModal').classList.add('show');
+}
+function openInterpEditModal(id){
+  var interp=STATE.interpreters.find(function(x){return x.id===id;});
+  if(!interp) return;
+  STATE.modal={type:'interp',editId:id};
+  document.getElementById('interpModalTitle').textContent='통역사 수정';
+  document.getElementById('interpName').value=interp.name;
+  document.getElementById('interpId').value=interp.empId||'';
+  document.getElementById('interpMemo').value=interp.memo||'';
+  document.getElementById('interpModal').classList.add('show');
+}
+function closeInterpModal(){document.getElementById('interpModal').classList.remove('show');}
+
+function saveInterp(){
+  var name=document.getElementById('interpName').value.trim();
+  if(!name){alert('이름을 입력해주세요.');return;}
+  var empId=document.getElementById('interpId').value.trim();
+  var memo=document.getElementById('interpMemo').value.trim();
+  if(STATE.modal.editId){
+    var interp=STATE.interpreters.find(function(x){return x.id===STATE.modal.editId;});
+    if(interp){interp.name=name;interp.empId=empId;interp.memo=memo;}
+  } else {
+    var newId=STATE.interpreters.length>0?Math.max.apply(null,STATE.interpreters.map(function(x){return x.id;}))+1:1;
+    STATE.interpreters.push({id:newId,name:name,empId:empId,memo:memo,availability:[],recurringAvail:[]});
+    // 통역사 선택 드롭다운 갱신
+    updateInterpSelect();
+  }
+  closeInterpModal();
+  renderManage();
+}
+
+function deleteInterp(id){
+  if(!confirm('통역사를 삭제하면 관련 스케줄도 제거됩니다. 계속할까요?')) return;
+  STATE.interpreters=STATE.interpreters.filter(function(x){return x.id!==id;});
+  STATE.meetings=STATE.meetings.filter(function(m){return m.interpId!==id;});
+  updateInterpSelect();
+  renderManage();
+}
+
+/* ═══════════════════════════════════════
+   모달: 통역사 가능시간 등록
+═══════════════════════════════════════ */
+function openAvailModal(interpId){
+  var interp=STATE.interpreters.find(function(x){return x.id===interpId;});
+  if(!interp) return;
+  STATE.modal={type:'avail',interpId:interpId};
+  document.getElementById('availInterpName').textContent=interp.name;
+  fillTimeSelect(document.getElementById('availStartTime'));
+  fillTimeSelect(document.getElementById('availEndTime'));
+  fillTimeSelect(document.getElementById('availRStartTime'));
+  fillTimeSelect(document.getElementById('availREndTime'));
+  document.getElementById('availDate').value=STATE.selectedDate;
+  // 기존 등록된 것 표시
+  renderAvailLists(interp);
+  document.getElementById('availModal').classList.add('show');
+}
+function closeAvailModal(){document.getElementById('availModal').classList.remove('show');}
+
+function renderAvailLists(interp){
+  var dateList=document.getElementById('availDateList');
+  var recurList=document.getElementById('availRecurringList');
+  dateList.innerHTML=''; recurList.innerHTML='';
+  (interp.availability||[]).forEach(function(a,i){
+    var chip=document.createElement('div');
+    chip.className='avail-chip';
+    chip.innerHTML=a.date+' '+a.start+'–'+a.end+'<span class="remove" onclick="removeAvailDate('+i+')">×</span>';
+    dateList.appendChild(chip);
+  });
+  (interp.recurringAvail||[]).forEach(function(a,i){
+    var dowNames=['','월','화','수','목','금'];
+    var chip=document.createElement('div');
+    chip.className='avail-chip recurring';
+    chip.innerHTML='매 '+dowNames[a.dow]+'요일 '+a.start+'–'+a.end+'<span class="remove" onclick="removeAvailRecurring('+i+')">×</span>';
+    recurList.appendChild(chip);
+  });
+}
+
+function addAvailDate(){
+  var date=document.getElementById('availDate').value;
+  var start=document.getElementById('availStartTime').value;
+  var end=document.getElementById('availEndTime').value;
+  if(!date){alert('날짜를 선택해주세요.');return;}
+  if(timeToMin(start)>=timeToMin(end)){alert('종료 시간이 시작 시간보다 늦어야 합니다.');return;}
+  var interp=STATE.interpreters.find(function(x){return x.id===STATE.modal.interpId;});
+  if(!interp.availability) interp.availability=[];
+  interp.availability.push({date:date,start:start,end:end});
+  renderAvailLists(interp);
+}
+function addAvailRecurring(){
+  var dow=parseInt(document.getElementById('availDow').value);
+  var start=document.getElementById('availRStartTime').value;
+  var end=document.getElementById('availREndTime').value;
+  if(timeToMin(start)>=timeToMin(end)){alert('종료 시간이 시작 시간보다 늦어야 합니다.');return;}
+  var interp=STATE.interpreters.find(function(x){return x.id===STATE.modal.interpId;});
+  if(!interp.recurringAvail) interp.recurringAvail=[];
+  interp.recurringAvail.push({dow:dow,start:start,end:end});
+  renderAvailLists(interp);
+}
+function removeAvailDate(i){
+  var interp=STATE.interpreters.find(function(x){return x.id===STATE.modal.interpId;});
+  interp.availability.splice(i,1);
+  renderAvailLists(interp);
+}
+function removeAvailRecurring(i){
+  var interp=STATE.interpreters.find(function(x){return x.id===STATE.modal.interpId;});
+  interp.recurringAvail.splice(i,1);
+  renderAvailLists(interp);
+}
+function saveAvailability(){
+  closeAvailModal();
+  alert('가능 시간이 저장되었습니다.');
+  renderDaily();
+}
+
+/* ═══════════════════════════════════════
+   엑셀 추출
+═══════════════════════════════════════ */
+function exportExcel(){
+  var start=document.getElementById('exportStart').value;
+  var end=document.getElementById('exportEnd').value;
+  var interpFilter=document.getElementById('exportInterp').value;
+  var typeFilter=document.getElementById('exportType').value;
+  if(!start||!end){alert('시작일과 종료일을 선택해주세요.');return;}
+
+  var filtered=STATE.meetings.filter(function(m){
+    if(m.date<start||m.date>end) return false;
+    if(interpFilter!=='all'&&m.interpId!==parseInt(interpFilter)) return false;
+    if(typeFilter==='normal'&&m.isRegular) return false;
+    if(typeFilter==='regular'&&!m.isRegular) return false;
+    return true;
+  });
+
+  if(filtered.length===0){alert('해당 조건의 데이터가 없습니다.');return;}
+
+  // CSV 생성
+  var headers=['날짜','요일','시작','종료','통역사','회의명','신청자','구분','연장여부','상태'];
+  var rows=[headers.join(',')];
+  filtered.forEach(function(m){
+    var interp=STATE.interpreters.find(function(x){return x.id===m.interpId;});
+    var interpName=interp?interp.name:'미배정';
+    var dt=parseDate(m.date);
+    var row=[
+      m.date,
+      dowKo(dt.getDay()),
+      m.startTime,
+      m.endTime,
+      '"'+interpName+'"',
+      '"'+m.title+'"',
+      '"'+(m.requesterName||'')+'"',
+      m.isRegular?'정례':'일반',
+      m.isExt?'연장':'정규',
+      m.status==='approved'?'승인':m.status==='pending'?'대기':'거절'
+    ];
+    rows.push(row.join(','));
+  });
+
+  var csv='\uFEFF'+rows.join('\n'); // BOM for Excel Korean
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='통역스케줄_'+start+'_'+end+'.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  alert(filtered.length+'건 추출 완료!');
+}
+
+/* ═══════════════════════════════════════
+   역할 전환
+═══════════════════════════════════════ */
+function updateInterpSelect(){
+  var sel=document.getElementById('interpSelect');
+  sel.innerHTML='<option value="">-- 본인 선택 --</option>';
+  STATE.interpreters.forEach(function(interp){
+    var o=document.createElement('option');
+    o.value=interp.id; o.textContent=interp.name+(interp.empId?' ('+interp.empId+')':'');
+    sel.appendChild(o);
+  });
+}
+
+document.getElementById('userRole').addEventListener('change',function(e){
+  STATE.role=e.target.value;
+  var isInterp=STATE.role==='interpreter';
+  var isAdmin=STATE.role==='admin';
+  document.getElementById('interpSelect').style.display=isInterp?'block':'none';
+  document.getElementById('adminTab').style.display=isAdmin?'block':'none';
+  if(!isAdmin) switchTab('daily');
+  renderDaily();
+  renderRegular();
+});
+
+document.getElementById('interpSelect').addEventListener('change',function(e){
+  STATE.currentInterpId=e.target.value?parseInt(e.target.value):null;
+  renderDaily();
+});
+
+document.getElementById('selectedDate').addEventListener('change',function(e){
+  STATE.selectedDate=e.target.value;
+  renderDaily();
+});
+
+// 모달 외부 클릭 닫기
+['meetingModal','reservationModal','regularModal','interpModal','availModal','pendingModal','manualBlockModal'].forEach(function(id){
+  document.getElementById(id).addEventListener('click',function(e){
+    if(e.target===this) this.classList.remove('show');
+  });
+});
+
+/* ═══════════════════════════════════════
+   초기화
+═══════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded',function(){
+  initData();
+  updateInterpSelect();
+  fillTimeSelect(document.getElementById('regTime'));
+  // 엑셀 기본 날짜
+  var t=today();
+  var e=new Date(); e.setMonth(e.getMonth()+1);
+  document.getElementById('exportStart').value=t;
+  document.getElementById('exportEnd').value=dateStr(e);
+  renderDaily();
+  renderRegular();
+});
+</script>
+</body>
+</html>
