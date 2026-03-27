@@ -698,15 +698,19 @@ function isKrHoliday(dateStr){ return KR_HOLIDAYS.has(dateStr); }
    [섹션] 긴급 신청 버퍼(D+3 영업일) 계산
 
    비즈니스 규칙:
-   - 긴급 신청은 "오늘 기준 D+3 영업일" 이후 날짜만 신청 가능
+   - 긴급 신청은 "오당일 ~ D+3 영업일까지" 오픈, D+3 초과(그 다음날부터) 잠금
    - 영업일 카운트 시 제외 조건: 주말(토/일) + 한국 공휴일
    - 일본 공휴일은 제외하지 않음 (영업일로 간주)
 
-   예시)
-     오늘 수요일, 목요일=한국 공휴일 → D+3 = 다음주 화요일
-     오늘 수요일, 목요일=일본 공휴일 → D+3 = 다음주 월요일
+   예시) 오늘 3/26(수)
+     - D+3 = 4/1(수) → 4/1까지 오픈, 4/2부터 🔒 잠금
+     - 목=한국공휴일 → D+3=4/2(목), 4/3부터 잠금
+     - 목=일본공휴일 → D+3=3/31(월), 4/1부터 잠금
 
-   [백엔드 연동 시] POST /api/schedule/buffer-open-date 로 서버 계산 결과 수신 권장
+   calcBufferOpenDate() 반환값 = D+3 영업일 (= 마지막 오픈 날짜)
+   isBufferLocked()     = targetDate > D+3 이면 잠금
+
+   [백엔드 연동 시] GET /api/schedule/buffer-close-date 로 서버 계산 결과 수신 권장
    [관련 Story] Story 3-2: 긴급 신청 D+3 영업일 잠금 규칙 구현
 ═══════════════════════════════════════════════════════════════ */
 var EXTERNAL_LINK = ''; // 외부 신청서 URL — 실제 배포 시 환경변수 또는 관리자 설정으로 교체
@@ -722,32 +726,34 @@ function calcBufferOpenDate(){
     if(isKrHoliday(ds)) continue;         // 한국 공휴일만 제외
     count++;
   }
-  return dateStr(cur); // 오픈되는 최초 날짜
+  return dateStr(cur); // D+3 영업일 = 마지막 오픈 날짜
 }
 
 /**
  * 신청자 기준: 선택 날짜가 긴급 버퍼 잠금 상태인지 판정
+ * 규칙: 오당일 ~ D+3 영업일(포함)는 오픈, D+3 초과일로부터 잠금
+ * 예) closeDate=4/1 → 4/1까지 오픈(반환 false), 4/2부터 잠김(반환 true)
  * @param {string} targetDateStr - 'YYYY-MM-DD' 형식
- * @returns {boolean} true이면 긴급 신청 잠김(🔒 표시)
+ * @returns {boolean} true이면 잠김(🔒), false이면 오픈
  * [주의] 일반 신청에는 적용되지 않음. 긴급 신청 행(row)에만 사용.
  */
 function isBufferLocked(targetDateStr){
-  var openDate = calcBufferOpenDate();
-  return targetDateStr < openDate;
+  var closeDate = calcBufferOpenDate(); // D+3 영업일 = 마지막 오픈일
+  return targetDateStr > closeDate;    // D+3 초과분부터 잠김
 }
 
 /**
- * 버퍼 오픈까지 남은 달력 일수 (툴팁 표시용 — 영업일 아닌 달력 일수)
+ * 잠김 시작일까지 남은 달력 일수 (툴팁 표시용)
+ * targetDate가 closeDate 초과일 때, 해당 날짜에서 closeDate+1까지의 차이를 반환
  * @param {string} targetDateStr - 'YYYY-MM-DD'
- * @returns {number} 0 이하이면 이미 오픈된 날짜
+ * @returns {number} 0 이하이면 오픈 날짜
  */
 function daysUntilOpen(targetDateStr){
-  var openDate = calcBufferOpenDate();
-  if(targetDateStr >= openDate) return 0;
-  // 달력 일수 차이만 반환 (간단 표시용)
+  var closeDate = calcBufferOpenDate(); // D+3 = 마지막 오픈일
+  if(targetDateStr <= closeDate) return 0; // 오픈 구간
   var t = parseDate(targetDateStr);
-  var o = parseDate(openDate);
-  return Math.ceil((o - t)/(1000*60*60*24));
+  var o = parseDate(closeDate);
+  return Math.ceil((t - o)/(1000*60*60*24)); // 다음날부터 몇일 뒤인지
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1109,7 +1115,7 @@ function renderTimeLabelBanners(){
  *   5. 정규 신청가능 → 초록 '협의 필요' (클릭 시 신청 모달)
  */
 function renderIntegratedRow(container){
-  var openDate = calcBufferOpenDate();
+  var openDate = calcBufferOpenDate(); // D+3 영업일 = 마지막 오픈일 (이 날까지 오픈)
   var isHol = isHoliday(STATE.selectedDate);
   var dow = parseDate(STATE.selectedDate).getDay();
   var isWeekend = (dow===0||dow===6);
@@ -1133,7 +1139,7 @@ function renderIntegratedRow(container){
   var emergencyLocked = isBufferLocked(STATE.selectedDate);
   _buildIntegratedRow(container, {
     label: '긴급 신청',
-    subLabel: isUnavailableDay ? '휴일 (신청 불가)' : (emergencyLocked ? '🔒 '+openDate+' 오픈' : '긴급 협의 가능'),
+    subLabel: isUnavailableDay ? '휴일 (신청 불가)' : (emergencyLocked ? '🔒 '+openDate+'까지만 오픈' : '긴급 협의 가능'),
     subColor: isUnavailableDay ? '#ef4444' : (emergencyLocked ? '#f59e0b' : '#dc2626'),
     borderColor: '#f59e0b',
     bgGrad: 'linear-gradient(135deg,#fffbeb,#fef9ec)',
@@ -1175,7 +1181,7 @@ function _buildIntegratedRow(container, opts){
     } else if(opts.locked){
       el.className='slot slot-locked';
       el.innerHTML='<div style="text-align:center;line-height:1.3;"><div style="font-size:11px;">🔒</div><div style="font-size:8px;color:#f59e0b;font-weight:600;">잠김</div></div>';
-      el.title=s.time+' — '+opts.openDate+' 오픈 예정 (긴급 신청 한정)';
+      el.title=s.time+' — '+opts.openDate+'까지만 신청 가능 (긴급 신청 한정, 이후 잠김)';
       el.style.cursor='default';
 
     /* 케이스 3: 모두 배정됨 → 신청자에게는 "불가예상"으로만 표시 */
