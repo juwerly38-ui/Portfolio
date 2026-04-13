@@ -494,6 +494,56 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',san
     <div class="fg"><label>회의 제목 *</label><input id="resTitle" class="fi" type="text" placeholder="회의 제목 입력"></div>
     <div class="fg"><label>신청자 이름 *</label><input id="resName" class="fi" type="text" placeholder="이름 입력"></div>
     <div class="fg"><label>연락처</label><input id="resContact" class="fi" type="text" placeholder="연락처 입력"></div>
+    <!-- ── 회의 형태 ── -->
+    <div class="fg"><label>회의 형태 *</label>
+      <select id="resMeetingFormat" class="fi" onchange="onMeetingFormatChange()">
+        <option value="">선택해주세요</option>
+        <option value="remote">원격 (화상)</option>
+        <option value="onsite">대면</option>
+      </select>
+    </div>
+    <!-- 원격 시: Zoom 링크 입력 -->
+    <div class="fg" id="resZoomWrap" style="display:none;">
+      <label>Zoom 링크 *</label>
+      <input id="resZoomLink" class="fi" type="url" placeholder="https://zoom.us/j/...">
+    </div>
+    <!-- 대면 시: 회의 장소 입력 -->
+    <div class="fg" id="resLocationWrap" style="display:none;">
+      <label>회의 장소 *</label>
+      <input id="resLocation" class="fi" type="text" placeholder="건물명, 층수, 회의실 등">
+    </div>
+    <!-- ── 통역 방향 ── -->
+    <div class="fg" id="resDirectionGroup">
+      <label>통역 방향 *</label>
+      <!-- 대면회의 안내 -->
+      <div id="resDirectionOnsiteNote" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:8px 12px;font-size:12px;color:#166534;line-height:1.6;">
+        📌 대면 회의는 통역기를 사용하여 통역사 1명이 <strong>양방향(JP↔KR)</strong> 지원이 가능합니다.
+      </div>
+      <!-- 원격회의: 방향 선택 -->
+      <div id="resDirectionRemoteWrap" style="display:none;">
+        <select id="resDirection" class="fi" onchange="onDirectionChange()">
+          <option value="JP_KR">JP → KR (일본어 → 한국어)</option>
+          <option value="KR_JP">KR → JP (한국어 → 일본어)</option>
+          <option value="both" id="resDirectionBothOpt" style="display:none;">양방향 (JP↔KR) — 긴급 신청 한정</option>
+        </select>
+        <!-- 양방향 선택 시 2명 필요 안내 -->
+        <div id="resBothDirectionNote" style="display:none;margin-top:6px;background:#fef9c3;border:1.5px solid #fde68a;border-radius:8px;padding:8px 12px;font-size:12px;color:#92400e;line-height:1.6;">
+          ⚠️ 양방향 원격 통역은 방향별 통역사 <strong>2명</strong>이 필요합니다.<br>
+          1명만 가능한 경우 <strong>한국측(JP→KR)</strong> 통역만 제공될 수 있습니다.
+        </div>
+      </div>
+    </div>
+    <!-- ── 회의 유형 ── -->
+    <div class="fg"><label>회의 유형 *</label>
+      <select id="resMeetingType" class="fi">
+        <option value="general">일반 회의</option>
+        <option value="education">교육·설명회</option>
+        <option value="large">대규모 회의</option>
+      </select>
+      <div id="resMeetingTypeLargeNote" style="display:none;margin-top:6px;font-size:11px;color:#6b7280;">
+        💡 대규모 회의는 경력자 통역사를 우선 배정합니다.
+      </div>
+    </div>
     <div class="fg"><label>소요 시간 *</label>
       <select id="resDuration" class="fi">
         <option value="30">30분</option><option value="60" selected>1시간</option><option value="90">1시간 30분</option>
@@ -548,6 +598,41 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',san
       <label>예상 일정 미리보기</label>
       <div id="regPreview" class="recur-preview">설정을 완료하면 일정이 표시됩니다.</div>
       <div class="holiday-note" id="regHolidayNote"></div>
+    </div>
+    <!-- ── 회의 형태 (정례) ── -->
+    <div class="fg"><label>회의 형태 *</label>
+      <select id="regMeetingFormat" class="fi" onchange="onRegFormatChange()">
+        <option value="">선택해주세요</option>
+        <option value="remote">원격 (화상)</option>
+        <option value="onsite">대면</option>
+      </select>
+    </div>
+    <!-- 원격: Zoom 링크 -->
+    <div class="fg" id="regZoomWrap" style="display:none;">
+      <label>Zoom 링크</label>
+      <input id="regZoomLink" class="fi" type="url" placeholder="https://zoom.us/j/... (정례 고정 링크)">
+    </div>
+    <!-- 대면: 회의 장소 -->
+    <div class="fg" id="regLocationWrap" style="display:none;">
+      <label>회의 장소</label>
+      <input id="regLocation" class="fi" type="text" placeholder="건물명, 층수, 회의실 등">
+    </div>
+    <!-- ── 통역 방향 (정례) ── -->
+    <div class="fg">
+      <label>통역 방향</label>
+      <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:8px 12px;font-size:12px;color:#166534;line-height:1.6;margin-bottom:6px;">
+        📌 정례 통역은 <strong>한국측(JP→KR)</strong>만 지원됩니다.<br>
+        일본측(KR→JP) 통역이 필요한 경우 별도 문의해 주세요.
+      </div>
+      <div class="fd" style="font-size:13px;color:#166534;">JP → KR (일본어 → 한국어)</div>
+    </div>
+    <!-- ── 회의 유형 (정례) ── -->
+    <div class="fg"><label>회의 유형</label>
+      <select id="regMeetingType" class="fi">
+        <option value="general">일반 회의</option>
+        <option value="education">교육·설명회</option>
+        <option value="large">대규모 회의</option>
+      </select>
     </div>
     <div class="fg"><label>추가 요청사항</label><textarea id="regNotes" class="fi" rows="2" placeholder="요청사항 입력"></textarea></div>
     <div class="modal-btns">
@@ -2141,17 +2226,68 @@ function removeMeeting(id,event){
 /* ═══════════════════════════════════════
    모달: 예약 신청 (신청자)
 ═══════════════════════════════════════ */
+
+/**
+ * 회의 형태(원격/대면) 변경 시 호출
+ * - 원격: Zoom 링크 필드 표시, 통역방향 셀렉트 표시
+ * - 대면: 회의 장소 필드 표시, 통역방향 대신 양방향 안내 표시
+ * - 긴급 신청 여부에 따라 '양방향' 옵션 토글
+ */
+function onMeetingFormatChange(){
+  var fmt=document.getElementById('resMeetingFormat').value;
+  var isEmergency=STATE.modal&&STATE.modal.isEmergency;
+  // Zoom / 장소 필드
+  document.getElementById('resZoomWrap').style.display=(fmt==='remote')?'block':'none';
+  document.getElementById('resLocationWrap').style.display=(fmt==='onsite')?'block':'none';
+  // 통역 방향 UI
+  document.getElementById('resDirectionOnsiteNote').style.display=(fmt==='onsite')?'block':'none';
+  document.getElementById('resDirectionRemoteWrap').style.display=(fmt==='remote')?'block':'none';
+  // 양방향 옵션: 긴급+원격 시만 노출
+  var bothOpt=document.getElementById('resDirectionBothOpt');
+  if(fmt==='remote'&&isEmergency){
+    bothOpt.style.display='';
+  } else {
+    bothOpt.style.display='none';
+    // 양방향 선택돼 있으면 JP_KR로 리셋
+    var dir=document.getElementById('resDirection');
+    if(dir.value==='both') dir.value='JP_KR';
+  }
+  onDirectionChange();
+  onMeetingTypeChange();
+}
+
+/**
+ * 통역 방향 변경 시 호출
+ * - 원격+양방향 선택 시 2명 필요 안내 표시
+ */
+function onDirectionChange(){
+  var dir=document.getElementById('resDirection');
+  var show=dir&&dir.style.display!=='none'&&dir.value==='both';
+  document.getElementById('resBothDirectionNote').style.display=show?'block':'none';
+}
+
+/**
+ * 회의 유형 변경 시 호출
+ * - 대규모 선택 시 경력자 배정 안내 표시
+ */
+function onMeetingTypeChange(){
+  var tp=document.getElementById('resMeetingType').value;
+  document.getElementById('resMeetingTypeLargeNote').style.display=(tp==='large')?'block':'none';
+}
+
 /**
  * [신청자] 예약 신청 모달 오픈 (새 신청)
  * 클릭된 슬롯의 시간, 연장 여부를 UI에 표시하고 신청서 이벤트 연동.
  * [백엔드 연동 시] submitReservation() 로 폼 데이터 POST /api/reservations
- * @param {number} slotIdx     - TIME_SLOTS 인덱스
+ * @param {number} slotIdx      - TIME_SLOTS 인덱스
  * @param {Array}  availInterps - 현재 가용 통역사 목록
+ * @param {boolean} isEmergency - 긴급 신청 여부 (기본값 false)
  */
-function openResModal(slotIdx,availInterps){
+function openResModal(slotIdx,availInterps,isEmergency){
   var slot=TIME_SLOTS[slotIdx];
-  STATE.modal={type:'reservation',slotIdx:slotIdx,availInterps:availInterps};
-  document.getElementById('resTime').textContent=slot.time+(slot.ext?' 🔵 연장시간':'');
+  isEmergency=!!isEmergency;
+  STATE.modal={type:'reservation',slotIdx:slotIdx,availInterps:availInterps,isEmergency:isEmergency};
+  document.getElementById('resTime').textContent=slot.time+(slot.ext?' 🔵 연장시간':'')+(isEmergency?' ⚡ 긴급':'');
   document.getElementById('resTime').className=slot.ext?'fd ext':'fd';
   // 가능 명수는 숨김 — 신청자에게 통역사 배정 상황 노출 안 함
   document.getElementById('resExtBadge').style.display=slot.ext?'inline-flex':'none';
@@ -2167,11 +2303,26 @@ function openResModal(slotIdx,availInterps){
   } else {
     linkWrap.style.display='none';
   }
+  // 기본값 초기화
   document.getElementById('resTitle').value='';
   document.getElementById('resName').value='';
   document.getElementById('resContact').value='';
   document.getElementById('resDuration').value='60';
   document.getElementById('resNotes').value='';
+  // 새 필드 초기화
+  document.getElementById('resMeetingFormat').value='';
+  document.getElementById('resZoomLink').value='';
+  document.getElementById('resLocation').value='';
+  document.getElementById('resMeetingType').value='general';
+  // 동적 필드 초기 상태 (형태 미선택이므로 모두 숨김)
+  document.getElementById('resZoomWrap').style.display='none';
+  document.getElementById('resLocationWrap').style.display='none';
+  document.getElementById('resDirectionOnsiteNote').style.display='none';
+  document.getElementById('resDirectionRemoteWrap').style.display='none';
+  document.getElementById('resBothDirectionNote').style.display='none';
+  document.getElementById('resMeetingTypeLargeNote').style.display='none';
+  // 긴급 신청 시 양방향 옵션 가시성 세팅 (형태 선택 전이므로 숨김 상태 유지)
+  document.getElementById('resDirectionBothOpt').style.display='none';
   document.getElementById('resSaveBtn').className=slot.ext?'btn btn-blue':'btn btn-primary';
   document.getElementById('reservationModal').classList.add('show');
 }
@@ -2189,22 +2340,45 @@ function closeResModal(){document.getElementById('reservationModal').classList.r
 function submitReservation(){
   var title=document.getElementById('resTitle').value.trim();
   var name=document.getElementById('resName').value.trim();
+  var fmt=document.getElementById('resMeetingFormat').value;
+  // 필수값 검증: 회의 형태 추가
   if(!title||!name){alert('필수 항목(*)을 입력해주세요.');return;}
+  if(!fmt){alert('회의 형태를 선택해주세요.');return;}
+  // 원격: Zoom 링크 필수, 대면: 장소 필수
+  var zoom=fmt==='remote'?document.getElementById('resZoomLink').value.trim():'';
+  var location=fmt==='onsite'?document.getElementById('resLocation').value.trim():'';
+  if(fmt==='remote'&&!zoom){alert('원격 회의는 Zoom 링크를 입력해주세요.');return;}
+  if(fmt==='onsite'&&!location){alert('대면 회의는 회의 장소를 입력해주세요.');return;}
+  // 통역 방향: 원격이면 선택값, 대면이면 'both_onsite'
+  var direction=fmt==='remote'?document.getElementById('resDirection').value:'both_onsite';
+  var meetingType=document.getElementById('resMeetingType').value;
   var dur=parseInt(document.getElementById('resDuration').value);
   var slot=TIME_SLOTS[STATE.modal.slotIdx];
   var endTime=minToTime(timeToMin(slot.time)+dur);
+  var isEmergency=STATE.modal.isEmergency||false;
   var res={
     id:Date.now(),title:title,requesterName:name,
     contact:document.getElementById('resContact').value.trim(),
     date:STATE.selectedDate,startTime:slot.time,endTime:endTime,duration:dur,
     notes:document.getElementById('resNotes').value.trim(),
-    isExt:slot.ext,status:'pending',
+    isExt:slot.ext,isEmergency:isEmergency,status:'pending',
+    meetingFormat:fmt,        // 'remote' | 'onsite'
+    zoomLink:zoom,            // 원격 시 Zoom URL
+    meetingLocation:location, // 대면 시 장소
+    direction:direction,      // 'JP_KR' | 'KR_JP' | 'both' | 'both_onsite'
+    meetingType:meetingType,  // 'general' | 'education' | 'large'
     availInterps:STATE.modal.availInterps.slice(),
     assignedInterpId:null,
     requestDate:new Date().toLocaleString('ko-KR')
   };
+  // 양방향 원격: 2명 필요 알림
+  var extraNote='';
+  if(fmt==='remote'&&direction==='both') extraNote='\n⚠️ 양방향 원격 통역 — 통역사 2명이 필요하며, 1명 가능 시 JP→KR만 제공될 수 있습니다.';
+  if(meetingType==='large') extraNote+='\n💡 대규모 회의 — 경력자 통역사를 우선 배정합니다.';
   STATE.reservations.push(res);
-  alert('예약 신청 완료!\n\n회의: '+title+'\n시간: '+slot.time+' – '+endTime+'\n신청자: '+name+'\n\n관리자 승인을 기다려주세요.'+(slot.ext?'\n⚠️ 연장 시간대 신청입니다.':''));
+  if(!STATE.myReservationIds) STATE.myReservationIds=[];
+  STATE.myReservationIds.push(res.id);
+  alert('예약 신청 완료!\n\n회의: '+title+'\n시간: '+slot.time+' – '+endTime+'\n신청자: '+name+'\n회의 형태: '+(fmt==='remote'?'원격 (화상)':'대면')+'\n\n관리자 승인을 기다려주세요.'+(slot.ext?'\n⚠️ 연장 시간대 신청입니다.':'')+extraNote);
   closeResModal();
 }
 
@@ -2224,11 +2398,18 @@ function openPendingModal(){
     var item=document.createElement('div');
     item.style='background:#f8f9fa;border-radius:10px;padding:14px;margin-bottom:10px;border:1.5px solid #fbbf24;';
     var extBadge=r.isExt?'<span style="background:#dbeafe;color:#2563eb;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px;">연장</span>':'';
+    var urgBadge=r.isEmergency?'<span style="background:#fef3c7;color:#92400e;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:4px;">긴급</span>':'';
+    var fmtLabel={'remote':'원격(화상)','onsite':'대면'};
+    var dirLabel={'JP_KR':'JP→KR','KR_JP':'KR→JP','both':'양방향','both_onsite':'양방향(대면)'};
+    var typeLabel={'general':'일반회의','education':'교육·설명회','large':'대규모회의'};
     item.innerHTML=
-      '<div style="font-size:14px;font-weight:700;margin-bottom:6px;">'+r.title+extBadge+'</div>'+
+      '<div style="font-size:14px;font-weight:700;margin-bottom:6px;">'+r.title+extBadge+urgBadge+'</div>'+
       '<div style="font-size:12px;color:#555;line-height:1.8;">'+
         '<div>📅 '+r.date+' '+r.startTime+' – '+r.endTime+'</div>'+
         '<div>👤 '+r.requesterName+(r.contact?' | '+r.contact:'')+'</div>'+
+        (r.meetingFormat?'<div>🖥 형태: '+(fmtLabel[r.meetingFormat]||r.meetingFormat)+(r.zoomLink?' | Zoom: <a href="'+r.zoomLink+'" target="_blank" style="color:#2563eb;">링크</a>':'')+(r.meetingLocation?' | 장소: '+r.meetingLocation:'')+'</div>':'')+
+        (r.direction?'<div>🔤 방향: '+(dirLabel[r.direction]||r.direction)+(r.direction==='both'?'<span style="color:#ef4444;"> ⚠️ 2명 필요</span>':'')+'</div>':'')+
+        (r.meetingType?'<div>📋 유형: '+(typeLabel[r.meetingType]||r.meetingType)+(r.meetingType==='large'?'<span style="color:#7c3aed;"> 💡경력자 배정</span>':'')+'</div>':'')+
         (r.notes?'<div>📝 '+r.notes+'</div>':'')+
       '</div>'+
       '<div style="display:flex;gap:8px;margin-top:10px;">'+
@@ -2304,10 +2485,27 @@ function openRegularModal(){
   for(var i=0;i<regTimeEl.options.length;i++){
     if(regTimeEl.options[i].value==='09:00'){regTimeEl.selectedIndex=i;break;}
   }
+  // 새 필드 초기화
+  document.getElementById('regMeetingFormat').value='';
+  document.getElementById('regZoomLink').value='';
+  document.getElementById('regLocation').value='';
+  document.getElementById('regMeetingType').value='general';
+  document.getElementById('regZoomWrap').style.display='none';
+  document.getElementById('regLocationWrap').style.display='none';
   updateRegularPreview();
   document.getElementById('regularModal').classList.add('show');
 }
 function closeRegularModal(){document.getElementById('regularModal').classList.remove('show');}
+/**
+ * 정례 신청 모달: 회의 형태 변경 시
+ * - 원격: Zoom 링크 필드 표시
+ * - 대면: 장소 필드 표시
+ */
+function onRegFormatChange(){
+  var fmt=document.getElementById('regMeetingFormat').value;
+  document.getElementById('regZoomWrap').style.display=(fmt==='remote')?'block':'none';
+  document.getElementById('regLocationWrap').style.display=(fmt==='onsite')?'block':'none';
+}
 
 function updateRegularPreview(){
   var start=document.getElementById('regStart').value;
@@ -2372,11 +2570,20 @@ function submitRegular(){
   var dates=calcRegularDates(start,end,days,cycle);
   if(dates.length===0){alert('해당 조건에 맞는 날짜가 없습니다.');return;}
   var gid=Date.now();
+  var regFmt=document.getElementById('regMeetingFormat').value;
+  var regZoom=regFmt==='remote'?document.getElementById('regZoomLink').value.trim():'';
+  var regLoc=regFmt==='onsite'?document.getElementById('regLocation').value.trim():'';
+  var regType=document.getElementById('regMeetingType').value;
   var group={
     id:gid,title:title,requester:requester,time:time,duration:dur,
     days:days,cycle:cycle,startDate:start,endDate:end,
     notes:document.getElementById('regNotes').value.trim(),
-    status:'pending',dates:dates,cancelledDates:[]
+    status:'pending',dates:dates,cancelledDates:[],
+    meetingFormat:regFmt,   // 'remote' | 'onsite'
+    zoomLink:regZoom,       // 정례 고정 Zoom 링크
+    meetingLocation:regLoc, // 대면 장소
+    direction:'JP_KR',      // 정례는 JP→KR 고정
+    meetingType:regType     // 'general' | 'education' | 'large'
   };
   STATE.regularGroups.push(group);
   /* 신청자 본인 세션에 그룹 ID 기록 */

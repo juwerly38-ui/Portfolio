@@ -60,6 +60,12 @@
 1. 필수값(title, requester, date, start, duration) 누락 시 400을 반환한다.
 2. 정상 요청 시 status=pending으로 저장된다.
 3. duration은 30/60/90만 허용한다.
+4. meeting_format(remote|onsite)은 필수값이며 누락 시 400을 반환한다.
+5. meeting_format=remote이면 zoom_link가 필수이다.
+6. meeting_format=onsite이면 meeting_location이 필수이다.
+7. direction=both(양방향)는 is_emergency=true일 때만 허용한다.
+8. 정례 신청의 direction은 JP_KR로 고정된다.
+9. meeting_type(general|education|large)은 필수이며 기본값은 general이다.
 
 ### Story 2-2
 - 제목: `관리자 예약 승인 API 및 자동 통역사 배정`
@@ -70,6 +76,8 @@
 1. 승인 시 실시간 가용 통역사 재조회가 수행된다.
 2. 후보 중 당일 누적시간 최소 통역사가 배정된다.
 3. 가용 통역사가 없으면 승인 실패(409) 처리된다.
+4. meeting_type=large이면 경력 통역사(senior=true)를 우선 배정 시도한다.
+5. direction=both(양방향 원격) 신청은 통역사 2명 배정을 시도한다. 1명만 가능 시 direction=JP_KR로 변경 후 1명만 배정하며 신청자에게 알림한다.
 
 ### Story 2-3
 - 제목: `관리자 예약 거절 API`
@@ -134,6 +142,8 @@
 1. cycle(every/biweekly/monthlyN) 계산으로 회차가 생성된다.
 2. 공휴일은 자동 제외된다.
 3. 최대 3개월 제한이 강제된다.
+4. 정례 신청의 direction은 JP_KR로 고정되며, 다른 값 입력 시 400을 반환한다.
+5. meeting_format(remote|onsite), zoom_link(remote 시), meeting_location(onsite 시)이 포함된다.
 
 ### Story 4-2
 - 제목: `정례 승인/거절 API`

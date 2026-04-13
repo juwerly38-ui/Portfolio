@@ -120,6 +120,13 @@
 - [x] CSV(엑셀) 추출 (기간/통역사/구분 필터)
 - [x] 신청자 정보 보호 (불가예상, 본인 신청 건만 표시)
 - [x] 데모 샘플 데이터 (정례 3건, 일회성 4건 사전 블록)
+- [x] **신청 모달 확장**: 통역 방향 / 회의 형태 / 회의 유형 필드 추가
+  - 일반 신청: 원격(화상)/대면 선택, Zoom 링크·회의 장소 입력
+  - 원격 신청: JP→KR / KR→JP 방향 선택
+  - 긴급+원격 신청: 양방향(JP↔KR) 옵션 활성화 (2명 필요 안내)
+  - 대면 신청: 통역기 사용으로 1명이 양방향 지원 가능 안내
+  - 회의 유형: 일반/교육·설명회/대규모 (대규모 시 경력자 배정 안내)
+  - 정례 신청: JP→KR 고정, 회의 형태(원격/대면) + 장소·Zoom 입력
 
 ### 3.2 미구현 / 보완 필요
 - [ ] **데이터 영속화**: 현재 프론트 전역 `STATE` 메모리 저장 → DB 필요
@@ -140,10 +147,16 @@ users               → id, name, role, employee_no, contact, active
 interpreters        → id, user_id(FK), memo, active
 interpreter_availability → id, interpreter_id(FK), type(single|recurring), date, dow, start_time, end_time
 reservations        → id, title, requester_user_id(FK), contact, date, start_time, end_time,
-                       duration_min, is_extended, notes, status(pending|approved|rejected|cancelled),
+                       duration_min, is_extended, is_emergency, notes,
+                       meeting_format(remote|onsite), zoom_link, meeting_location,
+                       direction(JP_KR|KR_JP|both|both_onsite), meeting_type(general|education|large),
+                       status(pending|approved|rejected|cancelled),
                        assigned_interpreter_id, rejection_reason
 regular_groups      → id, title, requester_user_id(FK), cycle, days(json), start_date, end_date,
-                       start_time, duration_min, notes, status(pending|active|rejected|cancelled)
+                       start_time, duration_min, notes,
+                       meeting_format(remote|onsite), zoom_link, meeting_location,
+                       direction(JP_KR 고정), meeting_type(general|education|large),
+                       status(pending|active|rejected|cancelled)
 meetings            → id, reservation_id, regular_group_id, interpreter_id, title, date,
                        start_time, end_time, duration_min, is_extended, is_regular, status
 manual_blocks       → id, dow(1~5), start_time, end_time, reason, created_by(FK)
@@ -192,6 +205,10 @@ GET    /api/export/csv?start=&end=&interp=&type=
 | 충돌 | 동일 통역사 시간 겹침 금지, 종료 후 30분 버퍼 중첩 금지 |
 | 정례 | 최대 3개월, 공휴일 자동 제외, 수기 블록 구간 생성 금지 |
 | 권한 | 승인/거절/수기블록/통역사 관리 = 관리자 전용 |
+| 통역 방향 | 원격 신청 필수 선택. 양방향(both)은 긴급 신청 시만 허용 |
+| 회의 형태 | 원격: zoom_link 필수. 대면: meeting_location 필수 |
+| 정례 방향 | 정례 신청은 direction=JP_KR 고정 (KR→JP 불가) |
+| 양방향 인원 | 원격+양방향: 통역사 2명 확보 우선. 1명만 가능 시 JP→KR만 제공 |
 
 ---
 
