@@ -63,9 +63,15 @@
 4. meeting_format(remote|onsite)은 필수값이며 누락 시 400을 반환한다.
 5. meeting_format=remote이면 zoom_link가 필수이다.
 6. meeting_format=onsite이면 meeting_location이 필수이다.
-7. direction=both(양방향)는 is_emergency=true일 때만 허용한다.
-8. 정례 신청의 direction은 JP_KR로 고정된다.
-9. meeting_type(general|education|large)은 필수이며 기본값은 general이다.
+7. is_emergency는 클라이언트가 아닌 서버가 자동 판단한다:
+   - remote + direction=KR_JP → is_emergency=true 강제
+   - remote + direction=both → is_emergency=true 강제
+   - remote + direction=JP_KR → is_emergency=false (일반)
+   - onsite (방향 무관) → is_emergency=false (일반, 대면 긴급도 허용)
+8. direction=KR_JP 또는 direction=both이고, target_date > D+3 이면 422(신청 불가) 반환.
+9. 정례 신청의 direction은 JP_KR로 고정되며, is_emergency는 항상 false이다.
+10. meeting_type(general|education|large)은 필수이며 기본값은 general이다.
+11. 연락처(contact)는 선택값. 향후 로그인 세션에서 자동 주입 예정으로 필수 아님.
 
 ### Story 2-2
 - 제목: `관리자 예약 승인 API 및 자동 통역사 배정`
