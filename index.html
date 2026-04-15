@@ -1513,7 +1513,8 @@ function _buildIntegratedRow(container, opts){
       el.className='slot slot-extended';
       el.innerHTML='<div style="text-align:center;line-height:1.3;"><div style="font-size:9px;font-weight:700;color:#2563eb;">연장</div><div style="font-size:8px;color:#3b82f6;">협의필요</div></div>';
       el.title=s.time+' — 연장 시간대 협의 필요 (통역사 동의 필요)';
-      (function(si,av){el.onclick=function(){openResModal(si,av);};})(i,avail);
+      /* 긴급행 여부를 openResModal에 함께 전달 */
+      (function(si,av,isEmg){el.onclick=function(){openResModal(si,av,isEmg);};})(i,avail,opts.isEmergency);
 
     /* 케이스 5: 정규 시간 문의 가능 */
     } else {
@@ -1521,7 +1522,8 @@ function _buildIntegratedRow(container, opts){
       var txt=opts.isEmergency?'긴급':'협의';
       el.innerHTML='<div style="text-align:center;line-height:1.3;"><div style="font-size:9px;font-weight:700;color:#16a34a;">'+txt+'</div><div style="font-size:8px;color:#16a34a;">필요</div></div>';
       el.title=s.time+' — '+(opts.isEmergency?'긴급 신청 — 협의 필요':'협의 필요')+'. 신청서 접수 후 관리자 검토·배정됩니다.';
-      (function(si,av){el.onclick=function(){openResModal(si,av);};})(i,avail);
+      /* 긴급행 여부를 openResModal에 함께 전달 */
+      (function(si,av,isEmg){el.onclick=function(){openResModal(si,av,isEmg);};})(i,avail,opts.isEmergency);
     }
     slots.appendChild(el);
   });
@@ -1578,6 +1580,7 @@ function renderInterpRow(container,interp){
  *   rest            → slot-rest
  *   limit           → slot-limit
  *   holiday         → slot-unavailable
+ *   unavailable     → slot-unavailable (가능시간 미등록 또는 범위 외)
  *   available(admin)→ slot-available 또는 slot-extended, '+' 버튼으로 회의 추가 가능
  */
 function buildSlot(el,st,slotData,interp,slotIdx){
@@ -1601,18 +1604,27 @@ function buildSlot(el,st,slotData,interp,slotIdx){
   } else if(st.status==='rest'){
     el.className='slot slot-rest';
     el.innerHTML='<span style="font-size:10px;">휴식</span>';
-    el.title='휴식 시간';
+    el.title='회의 후 30분 버퍼 (준비시간)';
   } else if(st.status==='limit'){
     el.className='slot slot-limit';
     el.innerHTML='<span style="font-size:10px;">제한</span>';
+    el.title='당일 배정 한도(4h) 초과';
   } else if(st.status==='holiday'){
     el.className='slot slot-unavailable';
     el.innerHTML='<span style="font-size:9px;">휴일</span>';
+    el.title='공휴일/주말';
+  } else if(st.status==='unavailable'){
+    /* 가능시간 미등록 또는 등록 범위 밖 — 통역사가 비어둔 시간 */
+    el.className='slot slot-unavailable';
+    el.style.opacity='0.5';
+    el.innerHTML='<span style="font-size:9px;color:#9ca3af;">–</span>';
+    el.title='가능시간 미등록 (통역사 불가)';
   } else {
-    // available
+    /* available */
     el.className='slot '+(isExt?'slot-extended':'slot-available');
     if(STATE.role==='admin'){
       el.innerHTML='<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>';
+      el.title='클릭하여 회의 추가';
       (function(iid,si){el.onclick=function(){openMtgModal(iid,si);};})(interp.id,slotIdx);
     }
   }
@@ -1623,12 +1635,17 @@ function buildSlot(el,st,slotData,interp,slotIdx){
 
    통역사 1명 × 슬롯 1개의 상태를 계산하는 핵심 로직.
    반환되는 status 종류:
-     'holiday'  : 공휴일/주말 (신청 불가)
-     'occupied' : 회의 진행 중 (해당 시간에 미팅 존재)
-     'rest'     : 회의 종료 후 30분 버퍼 (준비시간, 신청 불가)
-     'limit'    : 당일 누적 배정 240분 초과 (한도 도달)
-     'available': 신청 가능
+     'holiday'    : 공휴일/주말 (신청 불가)
+     'occupied'   : 회의 진행 중 (해당 시간에 미팅 존재)
+     'rest'       : 회의 종료 후 30분 버퍼 (준비시간, 신청 불가)
+     'limit'      : 당일 누적 배정 240분 초과 (한도 도달)
+     'unavailable': 가능시간 미등록 또는 등록 범위 밖 (신청 불가)
+     'available'  : 신청 가능
 
+   [가능시간 정책]
+     - 통역사가 availability(특정날짜) 또는 recurringAvail(요일반복)을 하나라도 등록한 경우
+       → 해당 범위에 포함되지 않는 슬롯은 'unavailable' 반환
+     - 아무것도 등록하지 않은 경우 → 전체 슬롯 'available' (기본 오픈 상태)
    [백엔드 연동 시] GET /api/schedule/daily?date=&role= 에서 서버가 계산 후 반환
    [관련 Story] Story 3-1: 슬롯 상태 계산 서비스 구현
    [검증 규칙]
@@ -1639,19 +1656,64 @@ function getSlotStatus(interpId,slotIdx,date){
   if(isHoliday(date)) return {status:'holiday'};
   var slot=TIME_SLOTS[slotIdx];
   var curMin=timeToMin(slot.time);
+
+  /* ── ① 회의 점유 확인 ── */
   var dayMeetings=STATE.meetings.filter(function(m){return m.interpId===interpId&&m.date===date&&m.status!=='rejected';});
   for(var i=0;i<dayMeetings.length;i++){
     var m=dayMeetings[i];
     var ms=timeToMin(m.startTime),me=timeToMin(m.endTime);
     if(curMin>=ms&&curMin<me) return {status:'occupied',meeting:m,isRegular:m.isRegular,isExt:slot.ext};
   }
+
+  /* ── ② 회의 후 30분 버퍼(휴식) 확인 ── */
   for(var j=0;j<dayMeetings.length;j++){
     var m2=dayMeetings[j];
     var me2=timeToMin(m2.endTime);
     if(curMin>=me2&&curMin<me2+30) return {status:'rest'};
   }
+
+  /* ── ③ 일일 한도(240분) 초과 확인 ── */
   var hours=getDailyHours(interpId,date);
   if(hours>=240) return {status:'limit'};
+
+  /* ── ④ 가능시간(availability) 확인 ──
+   *  통역사가 가능시간을 하나라도 등록한 경우,
+   *  해당 슬롯이 등록된 가능시간 범위에 포함되지 않으면 'unavailable' 처리.
+   *  아무것도 등록하지 않은 경우(availability·recurringAvail 모두 비어있음)
+   *  → 관리자·샘플 데이터 통역사처럼 전체 오픈(기존 동작 유지)
+   */
+  var interp=STATE.interpreters.find(function(x){return x.id===interpId;});
+  if(interp){
+    var hasAnyAvail=(interp.availability&&interp.availability.length>0)||
+                    (interp.recurringAvail&&interp.recurringAvail.length>0);
+    if(hasAnyAvail){
+      var slotEndMin=curMin+30; // 30분 슬롯의 끝 시각
+      var inRange=false;
+
+      /* 특정 날짜 가능시간 확인 */
+      (interp.availability||[]).forEach(function(a){
+        if(a.date===date){
+          var as=timeToMin(a.start), ae=timeToMin(a.end);
+          /* 슬롯 시작이 범위 내에 있으면 가능 */
+          if(curMin>=as&&curMin<ae) inRange=true;
+        }
+      });
+
+      /* 요일 반복 가능시간 확인 */
+      if(!inRange){
+        var dow=parseDate(date).getDay()||7; // 1=월
+        (interp.recurringAvail||[]).forEach(function(a){
+          if(parseInt(a.dow)===dow){
+            var rs=timeToMin(a.start), re=timeToMin(a.end);
+            if(curMin>=rs&&curMin<re) inRange=true;
+          }
+        });
+      }
+
+      if(!inRange) return {status:'unavailable'};
+    }
+  }
+
   return {status:'available'};
 }
 
@@ -1668,8 +1730,11 @@ function getDailyHours(interpId,date){
 
 /**
  * 특정 슬롯에 배정 가능한 통역사 목록 반환
- * 공휴일이면 빈 배열 반환 (신청 불가 처리)
- * 가용 통역사: getSlotStatus() === 'available'인 사람만 포함
+ * - 공휴일이면 빈 배열 반환 (신청 불가 처리)
+ * - getSlotStatus() === 'available'인 사람만 포함
+ *   → occupied / rest / limit / holiday / unavailable(가능시간 미등록) 모두 제외
+ * - 가능시간을 등록한 통역사는 해당 범위 내 슬롯만 가용으로 반환
+ * - 가능시간을 한 건도 등록하지 않은 통역사는 전체 슬롯 가용(기본값)
  * [백엔드 연동] 승인 시 서버에서 재조회 필수 (Story 2-2)
  * @returns {Array} 가용 통역사 객체 배열
  */
@@ -2073,18 +2138,12 @@ function _buildRegTimetable(tableEl, isAdmin){
         } else {
           cellSlot.className='reg-slot available';
           cellSlot.innerHTML='<span>협의<br>필요</span>';
-          cellSlot.title=slotTime+' '+DOW_NAMES[dow]+'요일 — 클릭하여 정례 통역 신청 문의';
+          cellSlot.title=slotTime+' '+DOW_NAMES[dow]+'요일 — 클릭하여 정례 통역 신청';
           if(!isAdmin){
             (function(clickDow,clickTime){
               cellSlot.onclick=function(){
-                /* 해당 요일의 다음 날짜를 selectedDate로 설정 후 신청 모달 */
-                var nextDate=getNextDowDate(clickDow);
-                STATE.selectedDate=nextDate;
-                document.getElementById('selectedDate').value=nextDate;
-                var si=TIME_SLOTS.findIndex(function(s){return s.time===clickTime;});
-                if(si<0) return;
-                var av=getAvailableInterpreters(si,nextDate);
-                openResModal(si,av);
+                /* 정례 탭 → 정례 신청 모달 오픈 (시간/요일 기본값 자동 설정) */
+                openRegularModal(clickDow, clickTime);
               };
             })(dow,slotTime);
           }
@@ -2599,10 +2658,12 @@ function onMeetingTypeChange(){
  * @param {number} slotIdx      - TIME_SLOTS 인덱스
  * @param {Array}  availInterps - 현재 가용 통역사 목록
  */
-function openResModal(slotIdx,availInterps){
+function openResModal(slotIdx,availInterps,isEmergencyRow){
   var slot=TIME_SLOTS[slotIdx];
-  // autoEmergency: 방향 선택 시 onDirectionChange()에서 업데이트됨
-  STATE.modal={type:'reservation',slotIdx:slotIdx,availInterps:availInterps,autoEmergency:false};
+  // isEmergencyRow: 긴급 신청 행에서 클릭했는지 여부 (true이면 긴급 모드 초기 설정)
+  // autoEmergency: 방향 선택 시 onDirectionChange()에서 추가 업데이트됨
+  STATE.modal={type:'reservation',slotIdx:slotIdx,availInterps:availInterps,
+               autoEmergency:isEmergencyRow||false,isEmergencyRow:isEmergencyRow||false};
   document.getElementById('resTime').textContent=slot.time+(slot.ext?' 🔵 연장시간':'');
   document.getElementById('resTime').className=slot.ext?'fd ext':'fd';
   document.getElementById('resExtBadge').style.display=slot.ext?'inline-flex':'none';
@@ -2922,7 +2983,12 @@ function rejectRes(id){
 /* ═══════════════════════════════════════
    모달: 정례 신청
 ═══════════════════════════════════════ */
-function openRegularModal(){
+/**
+ * 정례 신청 모달 오픈
+ * @param {number} [presetDow]  - 정례 탭 슬롯 클릭 시 자동 설정할 요일 (1=월~5=금, 선택)
+ * @param {string} [presetTime] - 정례 탭 슬롯 클릭 시 자동 설정할 시작 시각 (선택)
+ */
+function openRegularModal(presetDow, presetTime){
   // 기간 기본값: 오늘 ~ 현재월 기준 3개월 후 말일
   var s=new Date();
   var maxE=new Date(s.getFullYear(), s.getMonth()+3+1, 0); // 3개월 후 말일
@@ -2932,13 +2998,20 @@ function openRegularModal(){
   document.getElementById('regRequester').value='';
   document.getElementById('regNotes').value='';
   document.getElementById('regCycle').value='every';
-  document.querySelectorAll('#regDays input').forEach(function(c){c.checked=false;});
+
+  // 요일 체크박스 초기화 후 presetDow 자동 선택
+  document.querySelectorAll('#regDays input').forEach(function(c){
+    c.checked = (presetDow && parseInt(c.value)===presetDow);
+  });
+
   fillTimeSelect(document.getElementById('regTime'));
-  // regTime을 정규 시간대(09:00)로 기본 설정
+  // 시각 설정: presetTime이 있으면 해당 시각, 없으면 09:00
+  var defaultTime = presetTime || '09:00';
   var regTimeEl=document.getElementById('regTime');
   for(var i=0;i<regTimeEl.options.length;i++){
-    if(regTimeEl.options[i].value==='09:00'){regTimeEl.selectedIndex=i;break;}
+    if(regTimeEl.options[i].value===defaultTime){regTimeEl.selectedIndex=i;break;}
   }
+
   // 새 필드 초기화
   document.getElementById('regMeetingFormat').value='';
   document.getElementById('regZoomLink').value='';
