@@ -1616,9 +1616,14 @@ function buildSlot(el,st,slotData,interp,slotIdx){
   } else if(st.status==='unavailable'){
     /* 가능시간 미등록 또는 등록 범위 밖 — 통역사가 비어둔 시간 */
     el.className='slot slot-unavailable';
-    el.style.opacity='0.5';
-    el.innerHTML='<span style="font-size:9px;color:#9ca3af;">–</span>';
-    el.title='가능시간 미등록 (통역사 불가)';
+    el.style.opacity='0.6';
+    var unavailLabel=(STATE.role==='interpreter'&&interp.id===STATE.currentInterpId)
+      ? '<span style="font-size:9px;color:#9ca3af;">불가</span>'
+      : '<span style="font-size:9px;color:#9ca3af;">–</span>';
+    el.innerHTML=unavailLabel;
+    el.title=(STATE.role==='interpreter'&&interp.id===STATE.currentInterpId)
+      ? slotData.time+' – 가능시간 미등록 구간'
+      : '가능시간 미등록 (통역사 불가)';
   } else {
     /* available */
     el.className='slot '+(isExt?'slot-extended':'slot-available');
@@ -1626,6 +1631,15 @@ function buildSlot(el,st,slotData,interp,slotIdx){
       el.innerHTML='<svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>';
       el.title='클릭하여 회의 추가';
       (function(iid,si){el.onclick=function(){openMtgModal(iid,si);};})(interp.id,slotIdx);
+    } else if(STATE.role==='interpreter' && interp.id===STATE.currentInterpId){
+      /* 통역사 본인 뷰 – 가능시간 내 슬롯: ✓ 표시 */
+      el.innerHTML='<span style="font-size:11px;">✓</span>';
+      el.title=slotData.time+' 가능 (등록된 시간)';
+      el.style.cursor='default';
+    } else {
+      /* 다른 통역사 행(관리자 뷰가 아닌 경우) – 간단 표시 */
+      el.innerHTML='<span style="font-size:9px;color:#6b7280;">가능</span>';
+      el.title=slotData.time+' 신청 가능';
     }
   }
 }
@@ -3333,6 +3347,18 @@ document.getElementById('userRole').addEventListener('change',function(e){
   document.getElementById('interpSelect').style.display=isInterp?'block':'none';
   document.getElementById('adminTab').style.display=isAdmin?'block':'none';
   if(!isAdmin) switchTab('daily');
+
+  /* 통역사 역할 전환 시 드롭다운 첫 번째 항목 자동 선택 */
+  if(isInterp){
+    var sel=document.getElementById('interpSelect');
+    if(STATE.interpreters.length>0 && !STATE.currentInterpId){
+      sel.value=STATE.interpreters[0].id;
+      STATE.currentInterpId=STATE.interpreters[0].id;
+    }
+  } else {
+    STATE.currentInterpId=null;
+  }
+
   renderDaily();
   renderRegular();
 });
