@@ -259,12 +259,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',san
 <div class="rules-box">
   <div class="rules-title">📋 통역 규칙</div>
   <p class="rules-text">
-    • 하루 최대 4시간 &nbsp;•&nbsp; 1회 최대 1시간 30분 &nbsp;•&nbsp; 통역 후 30분 준비 필요 &nbsp;•&nbsp; 정규: 09:00–19:00
+    • 하루 최대 4시간 &nbsp;•&nbsp; 1회 최대 1시간 30분 &nbsp;•&nbsp; 통역 후 준비시간 필요 &nbsp;•&nbsp; 정규: 10:00–19:00
   </p>
   <p class="rules-ext">
     🟢 <strong>일반 신청</strong>: 날짜 제한 없이 상시 신청 가능 &nbsp;|&nbsp; 관리자 검토 후 배정<br>
     🔴 <strong>긴급 신청</strong>: 매일 00:00 기준 D+3 영업일부터 신청 오픈 &nbsp;|&nbsp; 한국 공휴일·주말 제외<br>
-    🔵 <strong>연장 운영</strong>: 08:00–09:00 / 19:00–21:00 &nbsp;|&nbsp; 통역사 희망 시 예외 배정 가능<br>
     🔁 <strong>정례 통역</strong>: 3개월 이내 반복 신청 가능 &nbsp;|&nbsp; 한국·일본 공휴일 자동 제외
   </p>
 </div>
@@ -323,7 +322,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',san
     <div class="reg-timetable-header">
       <div>
         <div class="reg-timetable-title">🗓️ 요일별 통역 가능 시간표</div>
-        <div style="font-size:12px;color:#6b7280;margin-top:2px;">정규 시간(09:00–19:00) 기준 · 초록 슬롯 클릭 시 정례 신청 문의</div>
+        <div style="font-size:12px;color:#6b7280;margin-top:2px;">정규 시간(10:00–19:00) 기준 · 초록 슬롯 클릭 시 정례 신청 문의</div>
       </div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
         <div class="reg-tt-legend">
@@ -436,13 +435,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',san
   <div class="legend-title">범례</div>
   <div class="legend-items">
     <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-color:#86efac;"></div><span class="legend-text">문의 가능 (일반 신청)</span></div>
-    <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-color:#93c5fd;"></div><span class="legend-text">연장 협의 필요</span></div>
     <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#fff1f2,#ffe4e6);border-color:#fca5a5;"></div><span class="legend-text">신청 불가</span></div>
     <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border-color:#fcd34d;"></div><span class="legend-text">🔒 긴급 잠금 (D+3 영업일 이전)</span></div>
     <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#fca5a5,#f87171);border-color:#ef4444;"></div><span class="legend-text">예약됨 (일반)</span></div>
     <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#86efac,#4ade80);border-color:#22c55e;"></div><span class="legend-text">예약됨 (정례)</span></div>
-    <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#a5b4fc,#818cf8);border-color:#6366f1;"></div><span class="legend-text">예약됨 (연장)</span></div>
-    <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#fef3c7,#fde047);border-color:#f59e0b;"></div><span class="legend-text">휴식</span></div>
+    <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#fef3c7,#fde047);border-color:#f59e0b;"></div><span class="legend-text">준비시간</span></div>
     <div class="legend-item"><div class="legend-color" style="background:linear-gradient(135deg,#f3f4f6,#e5e7eb);border-color:#d1d5db;"></div><span class="legend-text">한도초과</span></div>
   </div>
 </div>
@@ -452,7 +449,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',san
 <div id="meetingModal" class="modal">
   <div class="modal-box">
     <div class="modal-title">회의 추가</div>
-    <div id="mtgExtBadge" class="ext-badge" style="display:none;">🔵 연장 시간대</div>
+    <div id="mtgExtBadge" class="ext-badge" style="display:none;">🔵 연장 시간대 (별도 협의)</div>
     <div class="fg"><label>통역사</label><div id="mtgInterp" class="fd"></div></div>
     <div class="fg"><label>시작 시간</label><div id="mtgStart" class="fd"></div></div>
     <div class="fg"><label>회의 제목</label><input id="mtgTitle" class="fi" type="text" placeholder="회의 제목 입력"></div>
@@ -472,15 +469,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',san
 <div id="reservationModal" class="modal">
   <div class="modal-box">
     <div class="modal-title">📩 통역 신청 문의</div>
-    <div id="resExtBadge" class="ext-badge" style="display:none;">🔵 연장 시간대 — 통역사 동의 필요</div>
+    <div id="resExtBadge" class="ext-badge" style="display:none;">🔵 연장 시간대 — 별도 협의 필요</div>
     <!-- 안내 배너 -->
     <div id="resNoticeBanner" style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#92400e;line-height:1.7;">
       ℹ️ 신청서 접수 후 <strong>관리자 검토·배정</strong>이 이루어집니다.<br>
       배정 가능 여부는 검토 후 별도 안내 드립니다.
     </div>
     <div id="resExtNoticeBanner" style="display:none;background:#eff6ff;border:1.5px solid #93c5fd;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#1e40af;line-height:1.7;">
-      🔵 <strong>연장 시간대(08–09 / 19–21시)</strong> 신청입니다.<br>
-      담당 통역사의 동의가 추가로 필요하며, 승인까지 시간이 더 소요될 수 있습니다.
+      🔵 <strong>연장 시간대</strong> 신청입니다.<br>
+      담당자 별도 협의가 필요하며, 승인까지 시간이 더 소요될 수 있습니다.
     </div>
     <div class="fg"><label>선택 시간</label><div id="resTime" class="fd"></div></div>
     <!-- 외부 신청서 링크 (서버 연결 시 활성화) -->
@@ -864,7 +861,7 @@ function daysUntilOpen(targetDateStr){
    [섹션] 운영 시간 상수
 
    EXT_BEFORE  = 8  : 연장 시작 시각 (08:00)
-   CORE_START  = 9  : 정규 시작 시각 (09:00)
+   CORE_START  = 10 : 정규 시작 시각 (10:00)
    CORE_END    = 19 : 정규 종료 시각 기준 (19:00)
    CORE_END_MIN= 1110: 18:30(분) — 18:30 슬롯까지 정규로 판정하기 위한 경계
                        isExt()에서 m >= CORE_END*60+30 일 때만 연장으로 처리
@@ -873,7 +870,10 @@ function daysUntilOpen(targetDateStr){
 
    [백엔드 연동 시] 이 값들을 환경변수 또는 시스템 설정 테이블로 관리 권장
 ═══════════════════════════════════════════════════════════════ */
-var EXT_BEFORE=8, CORE_START=9, CORE_END=19, CORE_END_MIN=1110, EXT_AFTER=21;
+var EXT_BEFORE=8, CORE_START=10, CORE_END=19, CORE_END_MIN=1110, EXT_AFTER=21;
+
+/* 회의 후 준비시간(분). 기본값 60분. 관리자 설정으로 변경 가능 */
+var REST_BUFFER=60;
 
 /* ═══════════════════════════════════════════════════════════════
    [섹션] 전역 상태 (STATE)
@@ -939,8 +939,8 @@ function timeToMin(t){var p=t.split(':');return parseInt(p[0])*60+parseInt(p[1])
 function minToTime(m){return pad2(Math.floor(m/60))+':'+pad2(m%60);}
 /**
  * 해당 시간 슬롯이 연장 시간대인지 판정
- * 정규: 09:00 ~ 19:00(18:30 슬롯 포함, 즉 18:30~19:00까지)
- * 연장: 08:00~09:00 / 19:00~21:00 (19:00 슬롯부터 연장)
+ * 정규: 10:00 ~ 19:00(18:30 슬롯 포함, 즉 18:30~19:00까지)
+ * 연장: 08:00~10:00 / 19:00~21:00 (10:00 미만 또는 19:00 이후는 연장)
  * CORE_END*60+30 = 19*60+30 = 1170분(19:30) 이상이면 연장
  * → 19:00 슬롯(1140분)은 연장, 18:30 슬롯(1110분)은 정규
  */
@@ -956,12 +956,17 @@ function today(){return dateStr(new Date());}
 /** getDay() 숫자 → 한국어 요일 (0=일, 1=월, ..., 6=토) */
 function dowKo(d){return['일','월','화','수','목','금','토'][d];}
 
-/* 시간 슬롯 목록 */
+/* 연장 시간대 표시 여부 (true=숨김, false=노출). 관리자가 연장 슬롯이 필요한 경우 false로 변경 */
+var HIDE_EXT_SLOTS=true;
+
+/* 시간 슬롯 목록: HIDE_EXT_SLOTS=true 시 연장 슬롯 제외 */
 var TIME_SLOTS=(function(){
   var s=[];
   for(var h=EXT_BEFORE;h<EXT_AFTER;h++){
-    s.push({time:pad2(h)+':00',ext:isExt(pad2(h)+':00')});
-    s.push({time:pad2(h)+':30',ext:isExt(pad2(h)+':30')});
+    var t00=pad2(h)+':00', t30=pad2(h)+':30';
+    var e00=isExt(t00), e30=isExt(t30);
+    if(!HIDE_EXT_SLOTS||!e00) s.push({time:t00,ext:e00});
+    if(!HIDE_EXT_SLOTS||!e30) s.push({time:t30,ext:e30});
   }
   return s;
 })();
@@ -971,7 +976,7 @@ function fillTimeSelect(el){
   el.innerHTML='';
   TIME_SLOTS.forEach(function(s){
     var o=document.createElement('option');
-    o.value=s.time; o.textContent=s.time+(s.ext?' 🔵':'');
+    o.value=s.time; o.textContent=s.time;
     el.appendChild(o);
   });
 }
@@ -1407,7 +1412,7 @@ function renderTimeLabelBanners(){
     var b=document.createElement('div');
     b.className='zone-badge '+z.type;
     b.style.flex=z.count;
-    b.textContent=z.type==='ext'?'연장':'정규 (09:00–19:00)';
+    b.textContent=z.type==='ext'?'연장':'정규 (10:00–19:00)';
     banners.appendChild(b);
   });
   // 레이블
@@ -1603,8 +1608,8 @@ function buildSlot(el,st,slotData,interp,slotIdx){
     el.title=titleFull+' ('+st.meeting.startTime+'–'+st.meeting.endTime+')'+(st.meeting.direction?' ['+dLabel+']':'');
   } else if(st.status==='rest'){
     el.className='slot slot-rest';
-    el.innerHTML='<span style="font-size:10px;">휴식</span>';
-    el.title='회의 후 30분 버퍼 (준비시간)';
+    el.innerHTML='<span style="font-size:10px;">준비</span>';
+    el.title='회의 후 준비시간 ('+REST_BUFFER+'분)';
   } else if(st.status==='limit'){
     el.className='slot slot-limit';
     el.innerHTML='<span style="font-size:10px;">제한</span>';
@@ -1651,7 +1656,7 @@ function buildSlot(el,st,slotData,interp,slotIdx){
    반환되는 status 종류:
      'holiday'    : 공휴일/주말 (신청 불가)
      'occupied'   : 회의 진행 중 (해당 시간에 미팅 존재)
-     'rest'       : 회의 종료 후 30분 버퍼 (준비시간, 신청 불가)
+     'rest'       : 회의 종료 후 준비시간 (기본 60분, 신청 불가)
      'limit'      : 당일 누적 배정 240분 초과 (한도 도달)
      'unavailable': 가능시간 미등록 또는 등록 범위 밖 (신청 불가)
      'available'  : 신청 가능
@@ -1679,11 +1684,11 @@ function getSlotStatus(interpId,slotIdx,date){
     if(curMin>=ms&&curMin<me) return {status:'occupied',meeting:m,isRegular:m.isRegular,isExt:slot.ext};
   }
 
-  /* ── ② 회의 후 30분 버퍼(휴식) 확인 ── */
+  /* ── ② 회의 후 준비시간(기본 60분) 확인 ── */
   for(var j=0;j<dayMeetings.length;j++){
     var m2=dayMeetings[j];
     var me2=timeToMin(m2.endTime);
-    if(curMin>=me2&&curMin<me2+30) return {status:'rest'};
+    if(curMin>=me2&&curMin<me2+REST_BUFFER) return {status:'rest'};
   }
 
   /* ── ③ 일일 한도(240분) 초과 확인 ── */
@@ -1967,7 +1972,7 @@ function goToTodayMonth(){STATE.monthOffset=0;renderMonthly();}
    두 가지 화면이 역할별로 분리됨:
 
    ▸ 신청자/통역사 뷰 (regTimetableSection)
-     - 월~금 09:00~19:00 요일별 시간표
+     - 월~금 10:00~19:00 요일별 시간표
      - 슬롯 상태: 협의필요(초록) / 불가예상(빨강) / 🔒블록(노랑)
      - [보안] 배정된 슬롯은 회의명/신청자 비공개 → '불가예상'으로만 표시
      - 협의필요 슬롯 클릭 시 정례 신청 모달 오픈
@@ -1987,7 +1992,7 @@ function goToTodayMonth(){STATE.monthOffset=0;renderMonthly();}
      DELETE /api/manual-blocks/{id}
    [관련 Story] Epic 4: 정례 신청 엔진
 ═══════════════════════════════════════════════════════════════ */
-/* 정례 시간표: 정규 시간대만 (09:00~19:00, 18:30 포함) */
+/* 정례 시간표: 정규 시간대만 (10:00~19:00, 18:30 포함) */
 var REG_SLOTS=(function(){
   var s=[];
   for(var h=CORE_START;h<CORE_END;h++){
