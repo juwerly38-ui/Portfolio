@@ -223,6 +223,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',san
   .tabs{flex-wrap:wrap;}
   .export-filters{flex-direction:column;}
 }
+
+/* ── 토스트 알림 ── */
+#toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none;}
+.toast{min-width:260px;max-width:380px;padding:14px 18px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.15);opacity:0;transform:translateY(16px);transition:opacity .3s,transform .3s;pointer-events:auto;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.success{background:#ecfdf5;color:#065f46;border-left:4px solid #10b981;}
+.toast.error{background:#fef2f2;color:#991b1b;border-left:4px solid #ef4444;}
+.toast.warning{background:#fffbeb;color:#92400e;border-left:4px solid #f59e0b;}
+.toast.info{background:#eff6ff;color:#1e40af;border-left:4px solid #3b82f6;}
 </style>
 </head>
 <body>
@@ -941,6 +950,31 @@ var STATE = {
 ═══════════════════════════════════════════════════════════════ */
 /** 숫자를 2자리 문자열로 패딩 (예: 9 → '09') */
 function pad2(n){return(n<10?'0':'')+n;}
+
+/**
+ * 토스트 알림 표시 유틸리티
+ * @param {string} msg   - 표시할 메시지
+ * @param {string} type  - 'success' | 'error' | 'warning' | 'info' (기본: 'info')
+ * @param {number} duration - 표시 시간(ms), 기본 3500
+ */
+function showToast(msg,type,duration){
+  type=type||'info';
+  duration=duration||3500;
+  var container=document.getElementById('toast-container');
+  if(!container) return;
+  var t=document.createElement('div');
+  t.className='toast '+type;
+  t.innerHTML=msg;
+  container.appendChild(t);
+  // 애니메이션
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){t.classList.add('show');});
+  });
+  setTimeout(function(){
+    t.classList.remove('show');
+    setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);},350);
+  },duration);
+}
 /** 'HH:MM' → 분(integer) 변환 (예: '09:30' → 570) */
 function timeToMin(t){var p=t.split(':');return parseInt(p[0])*60+parseInt(p[1]);}
 /** 분(integer) → 'HH:MM' 변환 (예: 570 → '09:30') */
@@ -1565,7 +1599,16 @@ function renderInterpRow(container,interp){
   info.className='interp-info';
   var actionBtn='';
   if(STATE.role==='interpreter'&&interp.id===STATE.currentInterpId){
-    actionBtn='<button class="btn btn-blue btn-sm" onclick="openAvailModal('+interp.id+')" style="margin-top:4px;font-size:10px;padding:3px 7px;">가능시간 등록</button>';
+    // 가능시간 등록 현황 배지
+    var hasAvailToday=false;
+    var todayDs=STATE.selectedDate;
+    var todayDow=parseDate(todayDs).getDay()||7;
+    (interp.availability||[]).forEach(function(a){if(a.date===todayDs)hasAvailToday=true;});
+    if(!hasAvailToday)(interp.recurringAvail||[]).forEach(function(a){if(parseInt(a.dow)===todayDow)hasAvailToday=true;});
+    var availBadge=hasAvailToday
+      ?'<span style="background:#dcfce7;color:#166534;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;margin-left:4px;">✓ 오늘 가능시간 등록됨</span>'
+      :'<span style="background:#fef2f2;color:#991b1b;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;margin-left:4px;">⚠ 가능시간 미등록</span>';
+    actionBtn='<div style="margin-top:4px;display:flex;align-items:center;gap:6px;">'+availBadge+'<button class="btn btn-blue btn-sm" onclick="openAvailModal('+interp.id+')" style="font-size:10px;padding:3px 7px;">가능시간 등록</button></div>';
   }
   var typeBadge=interp.type==='emergency'
     ?'<span style="background:#fef3c7;color:#92400e;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;margin-left:4px;">⚡긴급</span>'
@@ -2283,7 +2326,7 @@ function approveRegularGroup(gid){
   STATE.meetings.forEach(function(m){
     if(m.regularGroupId===gid) m.status='approved';
   });
-  alert('정례 신청이 승인되었습니다. ('+g.title+')');
+  showToast('✅ 정례 신청 승인 완료 — '+g.title,'success');
   renderRegular();
 }
 
@@ -2296,7 +2339,7 @@ function rejectRegularGroup(gid){
   g.status='rejected';
   g.rejectionReason=reason;
   STATE.meetings=STATE.meetings.filter(function(m){return m.regularGroupId!==gid;});
-  alert('거절 처리되었습니다.');
+  showToast('거절 처리되었습니다.','warning');
   renderRegular();
 }
 
@@ -2886,12 +2929,12 @@ function submitReservation(){
   STATE.reservations.push(res);
   if(!STATE.myReservationIds) STATE.myReservationIds=[];
   STATE.myReservationIds.push(res.id);
-  alert('신청 완료!\n\n📋 '+title+'\n🕐 '+slot.time+' – '+endTime+'\n👤 '+name
-    +'\n🖥 형태: '+fmtText
-    +'\n🔤 방향: '+(dirText[direction]||direction)
-    +(isEmergency?'\n⚡ 유형: 긴급':'\n📌 유형: 일반')
-    +'\n\n관리자 검토 후 배정 안내드립니다.'
-    +(slot.ext?'\n⚠️ 연장 시간대 신청입니다.':'')+extraNote);
+  var toastMsg='📋 신청 접수 완료!'
+    +'<br><small>'+title+' | '+slot.time+' – '+endTime
+    +' | '+(isEmergency?'⚡ 긴급':'📌 일반')+'</small>'
+    +'<br><small style="color:#065f46;">관리자 검토 후 배정 안내드립니다.</small>';
+  if(slot.ext) toastMsg+='<br><small style="color:#1d4ed8;">⚠️ 연장 시간대 신청</small>';
+  showToast(toastMsg,'success',5000);
   closeResModal();
 }
 
@@ -2926,6 +2969,17 @@ function openPendingModal(){
       var fmtLabel={'remote':'원격(화상)','onsite':'대면'};
       var dirLabel={'JP_KR':'JP→KR','KR_JP':'KR→JP','both':'JP↔KR 양방향','both_onsite':'양방향(대면 1인)'};
       var typeLabel={'general':'일반회의','education':'교육·설명회','large':'대규모회의'};
+      // 해당 슬롯 가용 통역사 목록 (수동 선택용)
+      var rSlotIdx=TIME_SLOTS.findIndex(function(s){return s.time===r.startTime;});
+      var rAvailAll=rSlotIdx!==-1?getAvailableInterpreters(rSlotIdx,r.date):[];
+      var interpSelectOpts='<option value="auto">[자동 배정]</option>';
+      rAvailAll.forEach(function(iv){
+        var hrs=getDailyHours(iv.id,r.date);
+        var typeStr=iv.type==='general'?'일반':'긴급';
+        interpSelectOpts+='<option value="'+iv.id+'">'+iv.name+' ('+typeStr+', 누적 '+hrs+'분)</option>';
+      });
+      if(rAvailAll.length===0) interpSelectOpts='<option value="none" disabled>[가용 통역사 없음]</option>';
+      var iSelId='isel-'+r.id;
       item.innerHTML=
         '<div style="font-size:14px;font-weight:700;margin-bottom:6px;">'+r.title+extBadge+urgBadge+autoTag+'</div>'+
         '<div style="font-size:12px;color:#555;line-height:1.8;">'+
@@ -2936,9 +2990,14 @@ function openPendingModal(){
           (r.meetingType?'<div>📋 유형: '+(typeLabel[r.meetingType]||r.meetingType)+(r.meetingType==='large'?'<span style="color:#7c3aed;"> 💡경력자 우선</span>':'')+'</div>':'')+
           (r.notes?'<div>📝 '+r.notes+'</div>':'')+
         '</div>'+
-        '<div style="display:flex;gap:8px;margin-top:10px;">'+
-          '<button class="btn btn-primary btn-sm" onclick="approveRes('+r.id+')">승인</button>'+
-          '<button class="btn btn-red btn-sm" onclick="rejectRes('+r.id+')">거절</button>'+
+        '<div style="margin:8px 0 4px;">'+
+          '<label style="font-size:11px;font-weight:700;color:#374151;">🧑‍💼 통역사 지정</label>'+
+          '<select id="'+iSelId+'" class="fi" style="margin-top:3px;font-size:12px;">'+interpSelectOpts+'</select>'+
+          '<div style="font-size:10px;color:#9ca3af;margin-top:2px;">[자동 배정] 선택 시 방향·역할 규칙에 따라 최적 배정</div>'+
+        '</div>'+
+        '<div style="display:flex;gap:8px;margin-top:8px;">'+
+          '<button class="btn btn-primary btn-sm" onclick="approveRes(\'' +r.id+ '\',document.getElementById(\'' +iSelId+ '\').value)">승인</button>'+
+          '<button class="btn btn-red btn-sm" onclick="rejectRes(\'' +r.id+ '\')">거절</button>'+
         '</div>';
       list.appendChild(item);
     });
@@ -2966,15 +3025,23 @@ function closePendingModal(){document.getElementById('pendingModal').classList.r
  * [백엔드 연동 시] POST /api/reservations/{id}/approve (Story 2-2)
  * [경고] DB 트랜잭션/낙관적 락 없이 동시 승인 시 중복 배정 가능 → Story 6-2로 해결 필요
  */
-function approveRes(id){
+function approveRes(id, manualInterpId){
   var res=STATE.reservations.find(function(r){return r.id===id;});
   if(!res) return;
 
   var slotIdx=TIME_SLOTS.findIndex(function(s){return s.time===res.startTime;});
   var allAvail=slotIdx!==-1?getAvailableInterpreters(slotIdx,res.date):[];
 
-  /* 최소 배정 시간 통역사 선택 헬퍼 */
+  /* 수동 선택 통역사 처리 */
+  var manualInterp=null;
+  if(manualInterpId&&manualInterpId!=='auto'&&manualInterpId!=='none'){
+    var mid=parseInt(manualInterpId);
+    manualInterp=STATE.interpreters.find(function(x){return x.id===mid;});
+  }
+
+  /* 최소 배정 시간 통역사 선택 헬퍼 (수동 선택 우선) */
   function bestOf(pool){
+    if(manualInterp) return manualInterp; // 수동 선택 우선
     if(!pool||pool.length===0) return null;
     return pool.reduce(function(a,b){return getDailyHours(a.id,res.date)<=getDailyHours(b.id,res.date)?a:b;});
   }
@@ -2987,7 +3054,7 @@ function approveRes(id){
   if(dir==='JP_KR'){
     var pool=generalAvail.length>0?generalAvail:emergencyAvail;
     var best=bestOf(pool);
-    if(!best){alert('현재 해당 시간에 JP→KR 배정 가능한 통역사가 없습니다.\n\n외부 통역 섭외를 검토해 주세요.');return;}
+    if(!best){showToast('현재 JP→KR 배정 가능한 통역사가 없습니다. 외부 통역을 검토해 주세요.','error');return;}
     STATE.meetings.push({
       id:Date.now(),interpId:best.id,title:res.title,
       date:res.date,startTime:res.startTime,endTime:res.endTime,duration:res.duration,
@@ -2997,13 +3064,13 @@ function approveRes(id){
       zoomLink:res.zoomLink,meetingLocation:res.meetingLocation
     });
     res.status='approved'; res.assignedInterpId=best.id;
-    alert('✅ 승인 완료!\n배정 통역사: '+best.name+' ('+( best.type==='general'?'일반 통역사':'긴급 통역사')+')\n방향: JP→KR');
+    showToast('✅ 승인 완료 — '+best.name+' ('+(best.type==='general'?'일반 통역사':'긴급 통역사')+') / JP→KR','success');
   }
 
   /* ── KR→JP 단방향: 긴급 통역사 전담 ── */
   else if(dir==='KR_JP'){
     var bestEmg=bestOf(emergencyAvail);
-    if(!bestEmg){alert('현재 해당 시간에 KR→JP 긴급 통역사가 없습니다.\n\n긴급 리소스 오픈 시 재신청하거나 외부 통역을 고려해 주세요.');return;}
+    if(!bestEmg){showToast('KR→JP 긴급 통역사가 없습니다. 리소스 오픈 후 재신청하거나 외부 통역을 검토해 주세요.','error');return;}
     STATE.meetings.push({
       id:Date.now(),interpId:bestEmg.id,title:res.title,
       date:res.date,startTime:res.startTime,endTime:res.endTime,duration:res.duration,
@@ -3013,7 +3080,7 @@ function approveRes(id){
       zoomLink:res.zoomLink,meetingLocation:res.meetingLocation
     });
     res.status='approved'; res.assignedInterpId=bestEmg.id;
-    alert('✅ 승인 완료!\n배정 통역사: '+bestEmg.name+' (긴급 통역사)\n방향: KR→JP');
+    showToast('✅ 승인 완료 — '+bestEmg.name+' (긴급 통역사) / KR→JP','success');
   }
 
   /* ── JP↔KR 양방향: 긴급 통역사 2명 배정 시도 ── */
@@ -3040,7 +3107,7 @@ function approveRes(id){
         zoomLink:res.zoomLink,meetingLocation:res.meetingLocation
       });
       res.status='approved'; res.assignedInterpId=e1.id; res.assignedInterpId2=e2.id;
-      alert('✅ 양방향 승인 완료!\nJP→KR: '+e1.name+'\nKR→JP: '+e2.name);
+      showToast('✅ 양방향 승인 완료 — JP→KR: '+e1.name+' / KR→JP: '+e2.name,'success');
     } else if(emergencyAvail.length===1){
       // 1명만 가능 → 일반 통역사로 JP→KR 부분 승인
       var emgOne=emergencyAvail[0];
@@ -3055,10 +3122,10 @@ function approveRes(id){
         zoomLink:res.zoomLink,meetingLocation:res.meetingLocation
       });
       res.status='partial'; res.assignedInterpId=jpkrInterp.id;
-      alert('⚠️ 부분 승인 (JP→KR만)\n배정 통역사: '+jpkrInterp.name+'\n\nKR→JP 긴급 통역사가 부족하여 JP→KR만 승인되었습니다.\n나머지 시간대는 외부 통역으로 섭외를 부탁드립니다.');
+      showToast('⚠️ 부분 승인 (JP→KR만) — '+jpkrInterp.name+'<br><small>KR→JP 긴급 통역사 부족으로 JP→KR만 승인. 나머지는 외부 통역 섭외 필요.</small>','warning',5000);
     } else {
       // 0명 → 전체 거절
-      alert('❌ 배정 불가\n양방향(JP↔KR) 긴급 통역사가 없습니다.\n\n긴급 리소스 오픈 시 재신청하거나 외부 통역을 고려해 주세요.');
+      showToast('❌ 배정 불가 — 양방향(JP↔KR) 긴급 통역사가 없습니다. 외부 통역을 검토해 주세요.','error');
       return;
     }
   }
@@ -3066,7 +3133,7 @@ function approveRes(id){
   /* ── 대면 양방향(1인 단말): 긴급 통역사 1명 ── */
   else if(dir==='both_onsite'){
     var bestEmgO=bestOf(emergencyAvail);
-    if(!bestEmgO){alert('현재 해당 시간에 대면 양방향 긴급 통역사가 없습니다.\n\n외부 통역 섭외를 검토해 주세요.');return;}
+    if(!bestEmgO){showToast('현재 대면 양방향 긴급 통역사가 없습니다. 외부 통역을 검토해 주세요.','error');return;}
     STATE.meetings.push({
       id:Date.now(),interpId:bestEmgO.id,title:res.title+' (양방향대면)',
       date:res.date,startTime:res.startTime,endTime:res.endTime,duration:res.duration,
@@ -3076,7 +3143,7 @@ function approveRes(id){
       meetingLocation:res.meetingLocation
     });
     res.status='approved'; res.assignedInterpId=bestEmgO.id;
-    alert('✅ 대면 양방향 승인 완료!\n배정 통역사: '+bestEmgO.name+' (1인 양방향 단말)');
+    showToast('✅ 대면 양방향 승인 완료 — '+bestEmgO.name+' (1인 양방향)','success');
   }
 
   closePendingModal();
@@ -3501,5 +3568,8 @@ document.addEventListener('DOMContentLoaded',function(){
   renderRegular();
 });
 </script>
+
+<!-- ════ 토스트 알림 컨테이너 ════ -->
+<div id="toast-container"></div>
 </body>
 </html>
