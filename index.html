@@ -87,12 +87,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',san
 .week-table th.today-col{background:linear-gradient(135deg,#dcfce7,#bbf7d0);color:#16a34a;}
 .week-table td{padding:6px;border:1px solid #f0f0f0;vertical-align:top;min-height:60px;font-size:11px;}
 .week-cell{min-height:50px;}
-.week-slot{padding:4px 6px;border-radius:6px;margin-bottom:3px;font-size:11px;font-weight:500;cursor:pointer;}
+.week-slot{padding:4px 6px;border-radius:6px;margin-bottom:3px;font-size:11px;font-weight:500;cursor:pointer;line-height:1.4;}
 .week-slot.available{background:#dcfce7;color:#16a34a;}
 .week-slot.extended{background:#dbeafe;color:#2563eb;}
 .week-slot.occupied{background:#fca5a5;color:#991b1b;}
 .week-slot.regular-occ{background:#86efac;color:#166534;}
 .week-slot.holiday{background:#f3f4f6;color:#9ca3af;font-style:italic;}
+.week-slot.pending-req{background:#fef9c3;color:#92400e;border:1.5px solid #fcd34d;}
 
 /* ── 월별 뷰 ── */
 .month-nav{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
@@ -445,10 +446,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',san
 </div>
 </div><!-- /container -->
 
-<!-- ════ 모달: 회의 추가 (관리자) ════ -->
+<!-- ════ 모달: 회의 추가/수정 (관리자) ════ -->
 <div id="meetingModal" class="modal">
   <div class="modal-box">
-    <div class="modal-title">회의 추가</div>
+    <div class="modal-title" id="mtgModalTitle">회의 추가</div>
     <div id="mtgExtBadge" class="ext-badge" style="display:none;">🔵 연장 시간대 (별도 협의)</div>
     <div class="fg"><label>통역사</label><div id="mtgInterp" class="fd"></div></div>
     <div class="fg"><label>시작 시간</label><div id="mtgStart" class="fd"></div></div>
@@ -456,6 +457,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',san
     <div class="fg"><label>소요 시간</label>
       <select id="mtgDuration" class="fi">
         <option value="30">30분</option><option value="60" selected>1시간</option><option value="90">1시간 30분</option>
+      </select>
+    </div>
+    <div class="fg"><label>통역 방향</label>
+      <select id="mtgDirection" class="fi">
+        <option value="JP→KR">JP→KR (일→한)</option>
+        <option value="KR→JP">KR→JP (한→일)</option>
+        <option value="JP↔KR">JP↔KR (양방향)</option>
       </select>
     </div>
     <div class="modal-btns">
@@ -997,12 +1005,17 @@ function initData(){
   if(STATE.interpreters.length===0){
     /* ── 통역사 8명: 일반(JP→KR 전용) ── */
     var generalNames=['김지은','박소연','이미래','정수현','최유진','한나영','오지수','강민서'];
+    /* 샘플용 기본 요일반복 가능시간: 월~금 10:00~19:00 */
+    var defaultRecurring=[1,2,3,4,5].map(function(dow){
+      return {dow:dow, start:'10:00', end:'19:00'};
+    });
     generalNames.forEach(function(n,i){
       STATE.interpreters.push({
         id:i+1, name:n, empId:'GEN'+pad2(i+1),
-        type:'general',           // 일반: JP→KR 전담, 정례 배정 가능
+        type:'general',
         memo:'JP→KR 전담',
-        availability:[], recurringAvail:[]
+        availability:[],
+        recurringAvail:defaultRecurring.map(function(a){return {dow:a.dow,start:a.start,end:a.end};})
       });
     });
     /* ── 통역사 6명: 긴급(JP↔KR 양방향) ── */
@@ -1010,9 +1023,10 @@ function initData(){
     emergencyNames.forEach(function(n,i){
       STATE.interpreters.push({
         id:i+9, name:n, empId:'EMG'+pad2(i+1),
-        type:'emergency',         // 긴급: JP↔KR 양방향 가능
+        type:'emergency',
         memo:'양방향(JP↔KR)',
-        availability:[], recurringAvail:[]
+        availability:[],
+        recurringAvail:defaultRecurring.map(function(a){return {dow:a.dow,start:a.start,end:a.end};})
       });
     });
   }
@@ -1602,8 +1616,9 @@ function buildSlot(el,st,slotData,interp,slotIdx){
     /* 통역사 본인이거나 관리자일 때만 회의명 표시 */
     var showTitle=(STATE.role==='admin'||(STATE.role==='interpreter'&&interp.id===STATE.currentInterpId));
     var title=showTitle?(st.meeting.title.length>6?st.meeting.title.substring(0,6)+'…':st.meeting.title):'배정됨';
-    var delBtn=(STATE.role==='admin')?'<button class="del-btn" onclick="removeMeeting(\''+st.meeting.id+'\',event)">×</button>':'';
-    el.innerHTML='<div style="padding:0 3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;">'+title+delBtn+(dirBadge?'<br>'+dirBadge:'')+'</div>';
+    var delBtn=(STATE.role==='admin')?'<button class="del-btn" onclick="removeMeeting(\''+st.meeting.id+'\',event)" title="삭제">×</button>':'';
+    var editBtn=(STATE.role==='admin')?'<button class="del-btn" onclick="openMtgEditModal(\''+st.meeting.id+'\',event)" title="수정" style="background:#3b82f6;color:#fff;margin-right:2px;">✏</button>':'';
+    el.innerHTML='<div style="padding:0 3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;">'+title+editBtn+delBtn+(dirBadge?'<br>'+dirBadge:'')+'</div>';
     var titleFull=showTitle?st.meeting.title:'배정된 일정 있음';
     el.title=titleFull+' ('+st.meeting.startTime+'–'+st.meeting.endTime+')'+(st.meeting.direction?' ['+dLabel+']':'');
   } else if(st.status==='rest'){
@@ -1696,41 +1711,44 @@ function getSlotStatus(interpId,slotIdx,date){
   if(hours>=240) return {status:'limit'};
 
   /* ── ④ 가능시간(availability) 확인 ──
-   *  통역사가 가능시간을 하나라도 등록한 경우,
-   *  해당 슬롯이 등록된 가능시간 범위에 포함되지 않으면 'unavailable' 처리.
-   *  아무것도 등록하지 않은 경우(availability·recurringAvail 모두 비어있음)
-   *  → 관리자·샘플 데이터 통역사처럼 전체 오픈(기존 동작 유지)
+   *  [디폴트 전체 블락 정책]
+   *  가능시간을 하나도 등록하지 않은 경우 → 전체 슬롯 'unavailable' (블락)
+   *  가능시간을 하나라도 등록한 경우     → 등록 범위 내만 'available', 밖은 'unavailable'
+   *
+   *  이전 정책(미등록 = 전체 오픈)에서 변경됨.
+   *  실서비스에서는 관리자가 통역사별 가능시간을 사전에 등록해야 슬롯이 오픈됨.
    */
   var interp=STATE.interpreters.find(function(x){return x.id===interpId;});
   if(interp){
     var hasAnyAvail=(interp.availability&&interp.availability.length>0)||
                     (interp.recurringAvail&&interp.recurringAvail.length>0);
-    if(hasAnyAvail){
-      var slotEndMin=curMin+30; // 30분 슬롯의 끝 시각
-      var inRange=false;
 
-      /* 특정 날짜 가능시간 확인 */
-      (interp.availability||[]).forEach(function(a){
-        if(a.date===date){
-          var as=timeToMin(a.start), ae=timeToMin(a.end);
-          /* 슬롯 시작이 범위 내에 있으면 가능 */
-          if(curMin>=as&&curMin<ae) inRange=true;
+    /* 미등록 → 전체 블락 */
+    if(!hasAnyAvail) return {status:'unavailable'};
+
+    /* 등록된 경우 → 범위 체크 */
+    var inRange=false;
+
+    /* 특정 날짜 가능시간 확인 */
+    (interp.availability||[]).forEach(function(a){
+      if(a.date===date){
+        var as=timeToMin(a.start), ae=timeToMin(a.end);
+        if(curMin>=as&&curMin<ae) inRange=true;
+      }
+    });
+
+    /* 요일 반복 가능시간 확인 */
+    if(!inRange){
+      var dow=parseDate(date).getDay()||7; // 1=월
+      (interp.recurringAvail||[]).forEach(function(a){
+        if(parseInt(a.dow)===dow){
+          var rs=timeToMin(a.start), re=timeToMin(a.end);
+          if(curMin>=rs&&curMin<re) inRange=true;
         }
       });
-
-      /* 요일 반복 가능시간 확인 */
-      if(!inRange){
-        var dow=parseDate(date).getDay()||7; // 1=월
-        (interp.recurringAvail||[]).forEach(function(a){
-          if(parseInt(a.dow)===dow){
-            var rs=timeToMin(a.start), re=timeToMin(a.end);
-            if(curMin>=rs&&curMin<re) inRange=true;
-          }
-        });
-      }
-
-      if(!inRange) return {status:'unavailable'};
     }
+
+    if(!inRange) return {status:'unavailable'};
   }
 
   return {status:'available'};
@@ -1839,12 +1857,35 @@ function renderWeekly(){
           chip.textContent='불가예상';
           chip.title=slot.time+' — 해당 시간은 배정이 어려울 수 있습니다.';
         } else {
+          /* 관리자·통역사: 회의명 + 배정 통역사 이름 함께 표시 */
           chip.className='week-slot '+(m.isRegular?'regular-occ':'occupied');
-          chip.textContent=m.title.length>12?m.title.substring(0,12)+'…':m.title;
-          chip.title=m.title+' ('+m.startTime+'–'+m.endTime+')';
+          var shortTitle=m.title.length>10?m.title.substring(0,10)+'…':m.title;
+          var assignedInterp=STATE.interpreters.find(function(x){return x.id===m.interpId;});
+          var interpName=assignedInterp?assignedInterp.name:'미배정';
+          chip.innerHTML=
+            '<div style="font-size:10px;font-weight:700;line-height:1.3;">'+shortTitle+'</div>'+
+            '<div style="font-size:9px;opacity:0.85;line-height:1.2;">👤 '+interpName+'</div>';
+          chip.title=m.title+' ('+m.startTime+'–'+m.endTime+') — 담당: '+interpName;
         }
         cell.appendChild(chip);
       });
+      /* ── 미승인 신청(pending) 🟡 칩 — 관리자만 표시 ── */
+      if(STATE.role==='admin'){
+        var pendingReqs=STATE.reservations.filter(function(r){
+          return r.status==='pending'&&r.date===ds&&timeToMin(r.startTime)===timeToMin(slot.time);
+        });
+        pendingReqs.forEach(function(r){
+          var pchip=document.createElement('div');
+          pchip.className='week-slot pending-req';
+          var shortTitle=r.title&&r.title.length>8?r.title.substring(0,8)+'…':(r.title||'신청');
+          pchip.innerHTML=
+            '<div style="font-size:10px;font-weight:700;line-height:1.3;">🟡 '+shortTitle+'</div>'+
+            '<div style="font-size:9px;opacity:0.85;">'+r.requesterName+'</div>';
+          pchip.title='[미승인] '+r.title+' ('+r.startTime+'–'+r.endTime+')\n신청자: '+r.requesterName+(r.isEmergency?' ⚡긴급':'');
+          pchip.onclick=function(){openPendingModal();};
+          cell.appendChild(pchip);
+        });
+      }
       // 가능 인원 미니 표시
       var avail=getAvailableInterpreters(slotIdx,ds);
       if(avail.length>0&&STATE.role!=='interpreter'){
@@ -2500,9 +2541,15 @@ function renderInterpManage(){
     var typeBadgeCard=interp.type==='emergency'
       ?'<span style="background:#fef3c7;color:#92400e;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:4px;">⚡긴급</span>'
       :'<span style="background:#dcfce7;color:#166534;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:4px;">일반</span>';
+    /* 가능시간 등록 현황 뱃지 */
+    var avCount=(interp.availability||[]).length+(interp.recurringAvail||[]).length;
+    var avBadge=avCount>0
+      ?'<span style="background:#dcfce7;color:#166534;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:4px;">✓ 가능시간 '+avCount+'건</span>'
+      :'<span style="background:#fee2e2;color:#991b1b;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:4px;">미등록</span>';
     card.innerHTML=
-      '<div><div class="interp-card-info">'+interp.name+typeBadgeCard+'</div><div class="interp-card-sub">'+(interp.empId||'사번 없음')+(interp.memo?' | '+interp.memo:'')+'</div></div>'+
+      '<div><div class="interp-card-info">'+interp.name+typeBadgeCard+avBadge+'</div><div class="interp-card-sub">'+(interp.empId||'사번 없음')+(interp.memo?' | '+interp.memo:'')+'</div></div>'+
       '<div class="interp-card-actions">'+
+        '<button class="btn btn-blue btn-sm" onclick="openAvailModal('+interp.id+')">🕐 가능시간</button>'+
         '<button class="btn btn-secondary btn-sm" onclick="openInterpEditModal('+interp.id+')">수정</button>'+
         '<button class="btn btn-red btn-sm" onclick="deleteInterp('+interp.id+')">삭제</button>'+
       '</div>';
@@ -2518,25 +2565,76 @@ function renderInterpManage(){
  * saveMeeting()에서 문서화 후 STATE.meetings에 블록 새 입력.
  * [백엔드 연동 시] POST /api/meetings 로 대체
  */
+/**
+ * 회의 추가 모달 열기 (신규)
+ */
 function openMtgModal(interpId,slotIdx){
   var interp=STATE.interpreters.find(function(x){return x.id===interpId;});
   var slot=TIME_SLOTS[slotIdx];
-  STATE.modal={type:'meeting',interpId:interpId,slotIdx:slotIdx};
+  STATE.modal={type:'meeting',interpId:interpId,slotIdx:slotIdx,editId:null};
+  document.getElementById('mtgModalTitle').textContent='회의 추가';
   document.getElementById('mtgInterp').textContent=interp.name;
   document.getElementById('mtgStart').textContent=slot.time+(slot.ext?' 🔵':'');
   document.getElementById('mtgStart').className=slot.ext?'fd ext':'fd';
   document.getElementById('mtgExtBadge').style.display=slot.ext?'inline-flex':'none';
   document.getElementById('mtgTitle').value='';
   document.getElementById('mtgDuration').value='60';
+  document.getElementById('mtgDirection').value='JP→KR';
   document.getElementById('mtgSaveBtn').className=slot.ext?'btn btn-blue':'btn btn-primary';
   document.getElementById('meetingModal').classList.add('show');
 }
+
+/**
+ * 회의 수정 모달 열기 (기존 meeting 편집)
+ */
+function openMtgEditModal(meetingId,event){
+  if(event){event.stopPropagation();}
+  var m=STATE.meetings.find(function(x){return x.id==meetingId;});
+  if(!m) return;
+  var interp=STATE.interpreters.find(function(x){return x.id===m.interpId;});
+  var slotIdx=TIME_SLOTS.findIndex(function(s){return s.time===m.startTime;});
+  var slot=slotIdx>=0?TIME_SLOTS[slotIdx]:{ext:m.isExt};
+  STATE.modal={type:'meeting',interpId:m.interpId,slotIdx:slotIdx,editId:meetingId};
+  document.getElementById('mtgModalTitle').textContent='회의 수정';
+  document.getElementById('mtgInterp').textContent=interp?interp.name:'(알 수 없음)';
+  document.getElementById('mtgStart').textContent=m.startTime+(slot.ext?' 🔵':'');
+  document.getElementById('mtgStart').className=slot.ext?'fd ext':'fd';
+  document.getElementById('mtgExtBadge').style.display=slot.ext?'inline-flex':'none';
+  document.getElementById('mtgTitle').value=m.title;
+  document.getElementById('mtgDuration').value=String(m.duration||60);
+  document.getElementById('mtgDirection').value=m.direction||'JP→KR';
+  document.getElementById('mtgSaveBtn').className=slot.ext?'btn btn-blue':'btn btn-primary';
+  document.getElementById('meetingModal').classList.add('show');
+}
+
 function closeMtgModal(){document.getElementById('meetingModal').classList.remove('show');}
 
 function saveMeeting(){
   var title=document.getElementById('mtgTitle').value.trim();
   var dur=parseInt(document.getElementById('mtgDuration').value);
+  var dir=document.getElementById('mtgDirection').value;
   if(!title){alert('회의 제목을 입력해주세요.');return;}
+
+  /* ── 수정 모드 ── */
+  if(STATE.modal.editId){
+    var idx=STATE.meetings.findIndex(function(m){return m.id==STATE.modal.editId;});
+    if(idx!==-1){
+      var existing=STATE.meetings[idx];
+      var interp=STATE.interpreters.find(function(x){return x.id===existing.interpId;});
+      /* 다른 미팅을 제외한 오늘 누적 시간 */
+      var otherHours=STATE.meetings
+        .filter(function(m){return m.interpId===existing.interpId&&m.date===existing.date&&m.status!=='rejected'&&m.id!==existing.id;})
+        .reduce(function(acc,m){return acc+m.duration;},0);
+      if(otherHours+dur>240){alert('하루 4시간을 초과할 수 없습니다.');return;}
+      var endTime=minToTime(timeToMin(existing.startTime)+dur);
+      STATE.meetings[idx]=Object.assign({},existing,{title:title,duration:dur,endTime:endTime,direction:dir});
+    }
+    closeMtgModal();
+    renderDaily();
+    return;
+  }
+
+  /* ── 신규 모드 ── */
   var interp=STATE.interpreters.find(function(x){return x.id===STATE.modal.interpId;});
   var hours=getDailyHours(interp.id,STATE.selectedDate);
   if(hours+dur>240){alert('하루 4시간을 초과할 수 없습니다.');return;}
@@ -2544,7 +2642,7 @@ function saveMeeting(){
   var endTime=minToTime(timeToMin(slot.time)+dur);
   STATE.meetings.push({
     id:Date.now(),interpId:interp.id,title:title,date:STATE.selectedDate,
-    startTime:slot.time,endTime:endTime,duration:dur,
+    startTime:slot.time,endTime:endTime,duration:dur,direction:dir,
     isExt:slot.ext,isRegular:false,regularGroupId:null,
     requesterName:'관리자',status:'approved'
   });
@@ -3277,6 +3375,8 @@ function saveAvailability(){
   closeAvailModal();
   alert('가능 시간이 저장되었습니다.');
   renderDaily();
+  /* 관리 탭이 열려 있을 경우 카드 뱃지도 즉시 갱신 */
+  if(STATE.role==='admin') renderInterpManage();
 }
 
 /* ═══════════════════════════════════════
