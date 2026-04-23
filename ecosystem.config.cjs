@@ -3,7 +3,7 @@ module.exports = {
     {
       name: 'webapp',
       script: 'npx',
-      args: 'serve -s . -l 3000',
+      args: 'serve . -l 3000',
       cwd: '/home/user/webapp',
       env: { NODE_ENV: 'production' },
       watch: false,
