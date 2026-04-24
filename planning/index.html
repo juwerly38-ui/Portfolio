@@ -359,7 +359,7 @@ flowchart TD
     J --> M{신청 방식\nC안 선택}
     M -->|인트라넷 폼으로 이동| N[인트라넷 URL 이동\n날짜/시간 파라미터 전달]
     N --> O[인트라넷 폼 작성·제출]
-    O --> P[인트라넷 API → 스케줄 시스템 POST]
+    O --> P[인트라넷 API - 스케줄 시스템 POST]
     P --> Q[(reservations DB)]
     M -->|모달 내 직접 신청| R[신청 모달 입력]
     R --> S{필수값 검증}
@@ -372,7 +372,7 @@ flowchart TD
     W --> X{배정 방식}
     X -->|자동 배정| Y[최소 누적 시간 통역사 선택]
     X -->|수동 선택| Z[관리자 직접 통역사 지정]
-    Y --> AA[회의 생성 → meetings DB]
+    Y --> AA[회의 생성 - meetings DB]
     Z --> AA
     AA --> AB[신청자에게 승인 결과 반영]
     AA --> AC[통역사 일정에 슬롯 추가]
@@ -489,7 +489,7 @@ sequenceDiagram
     API->>DB: 예약 저장 (status: pending)
     API->>Intra: 200 OK + reservationId
     Intra->>User: 제출 완료 안내
-    Note over Sched,API: 스케줄 시스템은 폴링 또는 WebSocket으로\n신규 pending 건 감지 → 관리자에게 배지 표시
+    Note over Sched,API: 스케줄 시스템은 폴링 또는 WebSocket으로\n신규 pending 건 감지, 관리자에게 배지 표시
       </div>
     </div>
 
@@ -508,7 +508,7 @@ sequenceDiagram
       <p><strong>미결정 사항:</strong> 인트라넷 폼의 정확한 Base URL 및 파라미터 수신 방식은 인트라넷 담당자와 별도 협의가 필요합니다. 위 파라미터는 권고안이며, 인트라넷 폼 측 개발 일정과 맞추어 최종 확정 필요합니다.</p>
     </div>
 
-    <h3>인트라넷 API → 스케줄 시스템 POST 규격</h3>
+    <h3>인트라넷 API - 스케줄 시스템 POST 규격</h3>
     <div class="code-label">POST /api/reservations</div>
     <pre><code>{
   "title":          "회의명",            // string, 필수
@@ -550,37 +550,44 @@ const EXTERNAL_LINK = "https://intranet.company.com/request";
     <div class="diagram-wrap">
       <div class="mermaid">
 flowchart TD
-    A([관리자 접속]) --> B{미승인 건\n존재?}
+    A([관리자 접속]) --> B{미승인 건 존재?}
     B -->|없음| C[대기 없음]
-    B -->|있음| D[상단 배지 표시\n예약 신청 대기 N건]
-    D --> E[배지 클릭 → 승인 모달]
-    E --> F[⚡ 긴급 큐 / 📌 일반 큐\n분리 표시]
-    F --> G[각 신청 항목 확인\n회의명/날짜/시간/방향/유형/메모]
+    B -->|있음| D["상단 배지 표시
+예약 신청 대기 N건"]
+    D --> E[배지 클릭 - 승인 모달]
+    E --> F["긴급 큐 / 일반 큐 분리 표시"]
+    F --> G["각 신청 항목 확인
+회의명 / 날짜 / 시간 / 방향 / 유형"]
 
     G --> H{배정 방식 선택}
-    H -->|자동 배정| I[getAvailableInterpreters\n호출]
-    H -->|수동 선택| J[드롭다운에서\n통역사 직접 지정]
+    H -->|자동 배정| I["getAvailableInterpreters 호출"]
+    H -->|수동 선택| J["드롭다운에서 통역사 직접 지정"]
 
     I --> K{방향별 분기}
-    K -->|JP→KR| L[일반 통역사 우선\n→ 긴급 통역사 차순]
-    K -->|KR→JP| M[긴급 통역사만\n최소 누적시간 기준]
-    K -->|JP↔KR 양방향| N[긴급 통역사 2명 시도\n→ 1명만 가능 시 부분 승인]
+    K -->|JP to KR| L["일반 통역사 우선<br/>긴급 통역사 차순"]
+    K -->|KR to JP| M["긴급 통역사만<br/>최소 누적시간 기준"]
+    K -->|양방향| N["긴급 통역사 2명 시도<br/>1명만 가능 시 부분 승인"]
 
-    L --> O[bestOf 함수\n당일 누적 최소 통역사 선택]
+    L --> O["bestOf 함수
+당일 누적 최소 통역사 선택"]
     M --> O
     N --> O
     J --> O
 
     O --> P{배정 가능 여부}
-    P -->|가능| Q[회의(meeting) 생성\nstatus: approved]
-    P -->|불가| R[승인 실패 알림\n관리자에게 수동 처리 요청]
+    P -->|가능| Q["회의 생성
+status: approved"]
+    P -->|불가| R["승인 실패 알림
+관리자에게 수동 처리 요청"]
 
-    Q --> S[예약 status → approved\n통역사 일정에 반영]
+    Q --> S["예약 approved 처리
+통역사 일정에 반영"]
     S --> T[토스트 알림 표시]
 
     G --> U[반려 선택]
-    U --> V[반려 사유 입력\nreservation.rejectReason 저장]
-    V --> W[status → rejected]
+    U --> V["반려 사유 입력
+rejectReason 저장"]
+    V --> W[status: rejected]
 
     style Q fill:#dcfce7,stroke:#86efac
     style R fill:#fee2e2,stroke:#fca5a5
@@ -647,8 +654,8 @@ flowchart LR
     F -->|Yes| G([openDate = 해당 날짜])
 
     G --> H{신청 대상 날짜\n≤ openDate?}
-    H -->|Yes → 오픈| I([긴급 신청 가능\n🔓])
-    H -->|No → 잠김| J([긴급 신청 불가\n🔒])
+    H -->|오픈| I(["긴급 신청 가능 🔓"])
+    H -->|잠김| J(["긴급 신청 불가 🔒"])
 
     style I fill:#dcfce7,stroke:#86efac
     style J fill:#fef3c7,stroke:#fcd34d
