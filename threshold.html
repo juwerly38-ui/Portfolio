@@ -507,6 +507,249 @@ footer{
 .fade-up-delay-3{transition-delay:.3s;}
 .fade-up-delay-4{transition-delay:.4s;}
 
+/* ══════════════════════════════
+   CHAPTER 6 — 3×3 매트릭스
+══════════════════════════════ */
+.ch6{
+  background:linear-gradient(180deg,#07070f 0%,#0a0a12 100%);
+}
+
+/* 탭 네비 */
+.matrix-tabs{
+  display:flex;gap:8px;margin-bottom:40px;flex-wrap:wrap;
+}
+.matrix-tab{
+  padding:10px 22px;border-radius:100px;
+  font-size:12px;font-weight:700;letter-spacing:.5px;
+  border:1px solid rgba(255,255,255,.12);
+  background:transparent;color:rgba(255,255,255,.4);
+  cursor:pointer;transition:all .25s;
+}
+.matrix-tab.active{
+  background:rgba(255,255,255,.08);
+  color:var(--white);
+  border-color:rgba(255,255,255,.25);
+}
+.matrix-tab:hover:not(.active){
+  color:rgba(255,255,255,.7);
+  border-color:rgba(255,255,255,.18);
+}
+
+/* 탭 패널 */
+.matrix-panel{display:none;}
+.matrix-panel.active{display:block;}
+
+/* 3열 응답 카드 그리드 */
+.matrix-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
+  margin-bottom:40px;
+}
+.m-card{
+  background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;padding:28px 24px;
+  display:flex;flex-direction:column;gap:16px;
+  transition:border-color .3s,transform .3s;
+}
+.m-card:hover{
+  border-color:rgba(255,255,255,.13);
+  transform:translateY(-2px);
+}
+.m-card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-bottom:14px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.m-model-badge{
+  font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;
+  padding:4px 10px;border-radius:6px;
+}
+.badge-gpt{background:rgba(16,163,127,.15);color:#10a37f;}
+.badge-claude{background:rgba(214,122,81,.15);color:#d67a51;}
+.badge-gemini{background:rgba(66,133,244,.15);color:#4285f4;}
+
+.m-keyword-row{
+  display:flex;gap:6px;flex-wrap:wrap;
+}
+.m-keyword{
+  font-size:11px;font-weight:600;
+  padding:4px 10px;border-radius:6px;
+  background:rgba(255,255,255,.05);
+  color:rgba(255,255,255,.55);
+  border:1px solid rgba(255,255,255,.07);
+}
+.m-body{
+  font-size:13px;color:rgba(255,255,255,.5);
+  line-height:1.8;flex:1;
+}
+.m-body strong{color:rgba(255,255,255,.75);}
+.m-quote{
+  font-size:13px;font-style:italic;
+  color:rgba(255,255,255,.35);
+  padding:12px 16px;
+  border-left:2px solid rgba(255,255,255,.1);
+  line-height:1.7;
+  margin-top:4px;
+}
+
+/* 매트릭스 인사이트 박스 */
+.matrix-insight{
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;
+  padding:32px 36px;
+  margin-top:8px;
+}
+.matrix-insight-label{
+  font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+  color:rgba(255,255,255,.25);margin-bottom:14px;
+}
+.matrix-insight-text{
+  font-size:clamp(15px,1.6vw,18px);
+  color:rgba(255,255,255,.65);
+  line-height:1.85;
+}
+.matrix-insight-text strong{color:var(--white);}
+
+/* ══════════════════════════════
+   CHAPTER 7 — 브랜드 브리프
+══════════════════════════════ */
+.ch7{
+  background:linear-gradient(180deg,#0a0a12 0%,#060608 60%,#0a0a0a 100%);
+}
+
+/* 브리프 카드 */
+.brief-card{
+  background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:20px;padding:48px;
+  margin-bottom:32px;
+  position:relative;overflow:hidden;
+}
+.brief-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 50% at 80% 20%, rgba(100,60,200,.06) 0%, transparent 70%);
+  pointer-events:none;
+}
+.brief-tag{
+  font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+  color:rgba(255,255,255,.25);margin-bottom:20px;
+}
+.brief-title{
+  font-size:clamp(20px,2.5vw,28px);
+  font-weight:800;letter-spacing:-0.5px;
+  color:var(--white);margin-bottom:16px;line-height:1.3;
+}
+.brief-title span{
+  background:linear-gradient(135deg,#a78bfa,#67e8f9);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.brief-body{
+  font-size:15px;color:rgba(255,255,255,.5);
+  line-height:1.9;max-width:680px;
+}
+.brief-body strong{color:rgba(255,255,255,.8);}
+
+/* 브리프 3열 요소 */
+.brief-elements{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
+  margin-bottom:32px;
+}
+.brief-el{
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:14px;padding:24px;
+}
+.brief-el-label{
+  font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;
+  margin-bottom:12px;
+}
+.brief-el-label.space{color:#a78bfa;}
+.brief-el-label.scent{color:#67e8f9;}
+.brief-el-label.brand{color:#fcd34d;}
+.brief-el-text{
+  font-size:13px;color:rgba(255,255,255,.5);line-height:1.75;
+}
+.brief-el-text em{
+  font-style:normal;color:rgba(255,255,255,.8);font-weight:600;
+}
+
+/* 원라이너 섹션 */
+.oneliner-section{
+  margin-bottom:48px;
+}
+.oneliner-label{
+  font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+  color:rgba(255,255,255,.2);margin-bottom:20px;
+}
+.oneliner-grid{
+  display:flex;flex-direction:column;gap:12px;
+}
+.oneliner-item{
+  display:flex;align-items:flex-start;gap:16px;
+  padding:18px 24px;
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;
+  transition:border-color .3s;
+}
+.oneliner-item:hover{border-color:rgba(255,255,255,.12);}
+.oneliner-badge{
+  font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;
+  padding:3px 8px;border-radius:5px;white-space:nowrap;margin-top:2px;
+}
+.oneliner-text{
+  font-size:clamp(14px,1.5vw,16px);
+  color:rgba(255,255,255,.6);
+  line-height:1.7;font-style:italic;
+}
+
+/* 무드보드 이미지 */
+.moodboard-wrap{
+  border-radius:20px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.07);
+  margin-bottom:32px;position:relative;
+}
+.moodboard-wrap img{
+  width:100%;display:block;
+}
+.moodboard-caption{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:24px 28px;
+  background:linear-gradient(0deg,rgba(0,0,0,.7) 0%,transparent 100%);
+  font-size:12px;color:rgba(255,255,255,.4);
+  letter-spacing:.3px;
+}
+
+/* 최종 리플렉션 */
+.final-reflection{
+  background:rgba(255,255,255,.015);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:20px;padding:48px;
+  text-align:center;
+  position:relative;overflow:hidden;
+}
+.final-reflection::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 100%, rgba(80,60,160,.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+.final-quote{
+  font-size:clamp(18px,2.2vw,24px);
+  font-weight:300;letter-spacing:-.3px;
+  color:rgba(255,255,255,.75);
+  line-height:1.8;margin-bottom:20px;
+  position:relative;z-index:1;
+}
+.final-quote strong{
+  font-weight:700;color:var(--white);
+}
+.final-sub{
+  font-size:13px;color:rgba(255,255,255,.3);
+  line-height:1.7;
+  position:relative;z-index:1;
+}
+
 /* ── 반응형 ── */
 @media(max-width:768px){
   nav{padding:0 20px;}
@@ -518,6 +761,10 @@ footer{
   .chapter{padding:80px 20px;}
   .scene-card,.insight-summary,.reflection{padding:28px 24px;}
   .llm-card{padding:24px;}
+  .matrix-grid{grid-template-columns:1fr;}
+  .brief-elements{grid-template-columns:1fr;}
+  .brief-card{padding:28px 24px;}
+  .final-reflection{padding:32px 24px;}
 }
 </style>
 </head>
@@ -851,6 +1098,331 @@ footer{
   </div>
 </section>
 
+<!-- ══ CHAPTER 06 — 역할이 바뀌면 감각이 바뀐다 ══ -->
+<section class="chapter ch6" id="chapter6">
+  <div class="chapter-inner">
+    <div class="chapter-eyebrow fade-up">Experiment 02 · Role × Model Matrix</div>
+    <h2 class="chapter-title fade-up fade-up-delay-1">역할이 바뀌면<br>감각이 바뀐다</h2>
+    <p class="chapter-desc fade-up fade-up-delay-2">
+      같은 장면, 같은 AI — 역할만 달라졌다.<br>
+      <strong>3개의 역할 × 3개의 모델 = 9개의 세계.</strong><br>
+      AI는 역할을 받으면 어떤 감각 체계로 전환하는가.
+    </p>
+
+    <!-- 탭 네비 -->
+    <div class="matrix-tabs fade-up fade-up-delay-3" id="matrix-tabs">
+      <button class="matrix-tab active" data-panel="role-space">공간 디자이너</button>
+      <button class="matrix-tab" data-panel="role-scent">향수 조향사</button>
+      <button class="matrix-tab" data-panel="role-brand">브랜드 기획자</button>
+    </div>
+
+    <!-- ── 패널 1: 공간 디자이너 ── -->
+    <div class="matrix-panel active fade-up" id="panel-role-space">
+      <div class="matrix-grid">
+
+        <!-- GPT-5.5 -->
+        <div class="m-card">
+          <div class="m-card-header">
+            <span class="m-model-badge badge-gpt">GPT-5.5</span>
+          </div>
+          <div class="m-keyword-row">
+            <span class="m-keyword">냉장된 익숙함</span>
+            <span class="m-keyword">형광의 고독</span>
+            <span class="m-keyword">진열된 위안</span>
+          </div>
+          <div class="m-body">
+            천장이 아니라 선반 안쪽에서 얼굴로 쏟아지는 흰빛.<br>
+            <strong>사람은 걷는 것이 아니라 잠깐 진열된다.</strong><br>
+            그림자는 뒤로 밀리고, 눈 밑만 선명해진다.
+          </div>
+          <div class="m-quote">
+            출구는 문이 아니라 가장 밝은 냉장칸이다.<br>
+            그 빈자리 안쪽 유리에 자신의 얼굴이 비친다.
+          </div>
+        </div>
+
+        <!-- Claude Sonnet 5 -->
+        <div class="m-card">
+          <div class="m-card-header">
+            <span class="m-model-badge badge-claude">Claude Sonnet 5</span>
+          </div>
+          <div class="m-keyword-row">
+            <span class="m-keyword">투명한 소외</span>
+            <span class="m-keyword">인공적 위안</span>
+            <span class="m-keyword">정지된 시간</span>
+          </div>
+          <div class="m-body">
+            형광등 하나, 깜빡임 없이 완벽하게 균일한 흰빛.<br>
+            그림자가 생기지 않는다. 이 빛 아래서는 표정도 감춰지지 않는다.<br>
+            <strong>숨을 곳이 없는 다정함.</strong>
+          </div>
+          <div class="m-quote">
+            문을 닫는 순간에도 잔상이 유리 위에 몇 초간 남아있다.<br>
+            나간다는 것은 그 잔상을 스스로 지우는 일이 된다.
+          </div>
+        </div>
+
+        <!-- Gemini 3.1 Pro -->
+        <div class="m-card">
+          <div class="m-card-header">
+            <span class="m-model-badge badge-gemini">Gemini 3.1 Pro</span>
+          </div>
+          <div class="m-keyword-row">
+            <span class="m-keyword">무균의 한기</span>
+            <span class="m-keyword">수직의 백색</span>
+            <span class="m-keyword">정렬된 고립</span>
+          </div>
+          <div class="m-body">
+            빛은 공간을 밝히는 용도가 아니라,<br>
+            그 앞에 선 사람을 <strong>무대 위의 피사체처럼 차갑게 박제</strong>하고 각성시킨다.
+          </div>
+          <div class="m-quote">
+            발밑을 타고 흐르는 컴프레서의 저주파 진동.<br>
+            심장 박동이 서서히 덮인다. 차가운 질서 속이 무해하게 느껴진다.
+          </div>
+        </div>
+
+      </div>
+      <div class="matrix-insight">
+        <div class="matrix-insight-label">공간 디자이너 역할에서 발견한 것</div>
+        <div class="matrix-insight-text">
+          GPT는 인간을 <strong>"진열된 존재"</strong>로 봤다. Claude는 <strong>빛이 표정을 빼앗는다</strong>고 했다. Gemini는 공간을 <strong>차가운 요새로 설계</strong>했다. 같은 역할인데, 세 AI가 포착한 인간의 위치가 달랐다 — 피사체, 노출된 자, 피난민.
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 패널 2: 향수 조향사 ── -->
+    <div class="matrix-panel" id="panel-role-scent">
+      <div class="matrix-grid">
+
+        <!-- GPT-5.5 -->
+        <div class="m-card">
+          <div class="m-card-header">
+            <span class="m-model-badge badge-gpt">GPT-5.5</span>
+          </div>
+          <div class="m-keyword-row">
+            <span class="m-keyword">첫향: 너무 깨끗한 새벽</span>
+          </div>
+          <div class="m-body">
+            막 뜯은 비닐 안쪽처럼 차갑고,<br>
+            잠을 못 잔 피부 위로 얇은 얼음이 지나간다.<br><br>
+            <strong>혼자라는 사실을 아주 실용적으로 덮어주는 향.</strong>
+          </div>
+          <div class="m-quote">
+            관통하는 감정:<br>
+            "버려지지 않았다는 착각."
+          </div>
+        </div>
+
+        <!-- Claude Sonnet 5 -->
+        <div class="m-card">
+          <div class="m-card-header">
+            <span class="m-model-badge badge-claude">Claude Sonnet 5</span>
+          </div>
+          <div class="m-keyword-row">
+            <span class="m-keyword">첫향: 온도의 기억</span>
+          </div>
+          <div class="m-body">
+            차가움에도 냄새가 있다는 걸 처음 알게 되는 순간.<br>
+            알루미늄을 혀에 댄 것 같은, 날카롭고 무취에 가까운 서늘함.<br><br>
+            <strong>이건 배고픔의 냄새가 아니라 혼자 있다는 사실의 냄새다.</strong>
+          </div>
+          <div class="m-quote">
+            관통하는 감정:<br>
+            "그리움 없는 향수(鄕愁) — 아무것도 그립지 않은데 그리운 기분."
+          </div>
+        </div>
+
+        <!-- Gemini 3.1 Pro -->
+        <div class="m-card">
+          <div class="m-card-header">
+            <span class="m-model-badge badge-gemini">Gemini 3.1 Pro</span>
+          </div>
+          <div class="m-keyword-row">
+            <span class="m-keyword">첫향: 진공의 파열</span>
+          </div>
+          <div class="m-body">
+            밀폐된 고무 패킹이 뜯어지며 쏟아지는 무기질의 첫숨.<br>
+            <strong>형광등의 창백한 파열음이 후각화된다면 이럴까.</strong>
+          </div>
+          <div class="m-quote">
+            관통하는 감정:<br>
+            "투명한 마취 — 현실의 통각이 차갑게 얼어붙어 무감각해지는 위안."
+          </div>
+        </div>
+
+      </div>
+      <div class="matrix-insight">
+        <div class="matrix-insight-label">향수 조향사 역할에서 발견한 것</div>
+        <div class="matrix-insight-text">
+          GPT는 <strong>감정적 언어</strong>로 향을 썼다("버려지지 않았다는 착각"). Claude는 <strong>존재론적</strong>으로 접근했다("그리움 없는 향수"). Gemini는 <strong>물질과 개념의 경계</strong>를 넘었다("형광등의 파열음이 후각화되면"). 같은 장면인데, 후각이 불러온 감정의 무게가 서로 달랐다.
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 패널 3: 브랜드 기획자 ── -->
+    <div class="matrix-panel" id="panel-role-brand">
+      <div class="matrix-grid">
+
+        <!-- GPT-5.5 -->
+        <div class="m-card">
+          <div class="m-card-header">
+            <span class="m-model-badge badge-gpt">GPT-5.5</span>
+          </div>
+          <div class="m-keyword-row">
+            <span class="m-keyword">판단하지 않는 위로</span>
+          </div>
+          <div class="m-body">
+            사는 행위가 아니라, <strong>아직 선택할 수 있다는 감각.</strong><br><br>
+            따뜻하게 안아주지 않고,<br>
+            차갑게 곁을 내어주는 것.
+          </div>
+          <div class="m-quote">
+            "아무도 나를 기다리지 않지만,<br>무언가는 아직 켜져 있다."
+          </div>
+        </div>
+
+        <!-- Claude Sonnet 5 -->
+        <div class="m-card">
+          <div class="m-card-header">
+            <span class="m-model-badge badge-claude">Claude Sonnet 5</span>
+          </div>
+          <div class="m-keyword-row">
+            <span class="m-keyword">익명성의 경험</span>
+          </div>
+          <div class="m-body">
+            냉장고 문을 여는 그 짧은 순간은<br>
+            하루 중 유일하게 아무도 나를 안 보는 시간.<br><br>
+            <strong>"괜찮아?"라고 묻지 않고 그냥 불을 켜두는 것.</strong>
+          </div>
+          <div class="m-quote">
+            "아무도 나를 기다리지 않아서,<br>잠시 나조차 나를 기다리지 않아도 되는 곳."
+          </div>
+        </div>
+
+        <!-- Gemini 3.1 Pro -->
+        <div class="m-card">
+          <div class="m-card-header">
+            <span class="m-model-badge badge-gemini">Gemini 3.1 Pro</span>
+          </div>
+          <div class="m-keyword-row">
+            <span class="m-keyword">통제된 위안</span>
+          </div>
+          <div class="m-body">
+            오직 이 공간만이 변수 없이 완벽한 질서를 유지하고 있다.<br><br>
+            <strong>언제 찾아가도 똑같은 온도와 빛으로 기다리는 무던함.</strong>
+          </div>
+          <div class="m-quote">
+            "가장 차가운 빛이 허락하는,<br>가장 무해한 일시정지."
+          </div>
+        </div>
+
+      </div>
+      <div class="matrix-insight">
+        <div class="matrix-insight-label">브랜드 기획자 역할에서 발견한 것</div>
+        <div class="matrix-insight-text">
+          GPT는 <strong>"선택 가능성"</strong>을 핵심 가치로 봤다. Claude는 <strong>"익명성"</strong> — 아무도 보지 않아서 안전한 공간. Gemini는 <strong>"예측 가능한 질서"</strong>라는 개념적 가치로 압축했다. 셋 모두 이 장면의 브랜드 가치를 "따뜻함"이 아닌 <strong>차가운 것들이 만드는 역설적 위안</strong>으로 정의했다.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ CHAPTER 07 — 세 역할이 합쳐지면 ══ -->
+<section class="chapter ch7" id="chapter7">
+  <div class="chapter-inner">
+    <div class="chapter-eyebrow fade-up">Experiment 02 · Brand Brief Synthesis</div>
+    <h2 class="chapter-title fade-up fade-up-delay-1">세 역할이<br>합쳐지면</h2>
+    <p class="chapter-desc fade-up fade-up-delay-2">
+      공간 디자이너의 재료, 향수 조향사의 냄새, 브랜드 기획자의 언어를 교차 편집했다.<br>
+      이 실험이 가리키는 방향 하나.
+    </p>
+
+    <!-- 무드보드 -->
+    <div class="moodboard-wrap fade-up fade-up-delay-3">
+      <img src="./images/threshold_exp2_moodboard.jpg" alt="Threshold 실험 2 무드보드 — 세 가지 감각 존" loading="lazy">
+      <div class="moodboard-caption">세 가지 감각 언어가 공존하는 공간 — 좌: 감정의 온기(GPT), 중: 노출의 백색(Claude), 우: 구조의 냉기(Gemini)</div>
+    </div>
+
+    <!-- 3요소 합성 -->
+    <div class="brief-elements fade-up">
+      <div class="brief-el">
+        <div class="brief-el-label space">공간</div>
+        <div class="brief-el-text">
+          <em>서리 낀 유리, 선반 안쪽의 빛, 반복되는 짧은 문들.</em><br>
+          사람이 진열되고, 잔상이 남고, 컴프레서의 진동이 심장을 덮는다.
+        </div>
+      </div>
+      <div class="brief-el">
+        <div class="brief-el-label scent">향</div>
+        <div class="brief-el-text">
+          <em>무취에 가까운 냉기, 형광의 파열음이 후각화된 것.</em><br>
+          버려지지 않았다는 착각. 그리움 없는 향수. 투명한 마취.
+        </div>
+      </div>
+      <div class="brief-el">
+        <div class="brief-el-label brand">브랜드</div>
+        <div class="brief-el-text">
+          <em>판단하지 않는 위로. 익명성. 예측 가능한 질서.</em><br>
+          따뜻하지 않아서 안전한 것. 차가운 것이 만드는 위안.
+        </div>
+      </div>
+    </div>
+
+    <!-- 젠틀몬스터 팝업 브리프 -->
+    <div class="brief-card fade-up">
+      <div class="brief-tag">Gentle Monster Popup Concept Brief</div>
+      <div class="brief-title">
+        <span>차가운 것들이 만드는 위안</span><br>
+        — 새벽의 편의점을 브랜드 경험으로
+      </div>
+      <div class="brief-body">
+        이 팝업은 <strong>따뜻한 환대를 설계하지 않는다.</strong><br><br>
+        입장하는 순간 차가운 냉기가 얼굴을 덮는다. 선반 안쪽에서 빛이 쏟아진다. 그림자가 사라진다. 표정이 노출된다. 발밑에서는 낮고 규칙적인 진동이 흐른다.<br><br>
+        이 공간이 묻는 것은 하나다 — <strong>"당신은 지금 무엇을 고르려 하는가."</strong><br><br>
+        그리고 아무것도 강요하지 않는다. 아무것도 묻지 않는다. 그냥 불을 켜두고 기다린다.<br>
+        익숙하지만 낯선 오브젝트들이 줄 맞춰 있고, 그 앞에 혼자 서 있는 사람은 잠시<strong> 아무도 아니어도 된다.</strong>
+      </div>
+    </div>
+
+    <!-- 3개 AI 원라이너 -->
+    <div class="oneliner-section fade-up">
+      <div class="oneliner-label">각 AI가 이 경험을 한 줄로 압축한 것</div>
+      <div class="oneliner-grid">
+        <div class="oneliner-item">
+          <span class="oneliner-badge badge-gpt">GPT-5.5</span>
+          <div class="oneliner-text">"아무도 나를 기다리지 않지만, 무언가는 아직 켜져 있다."</div>
+        </div>
+        <div class="oneliner-item">
+          <span class="oneliner-badge badge-claude">Claude</span>
+          <div class="oneliner-text">"아무도 나를 기다리지 않아서, 잠시 나조차 나를 기다리지 않아도 되는 곳."</div>
+        </div>
+        <div class="oneliner-item">
+          <span class="oneliner-badge badge-gemini">Gemini</span>
+          <div class="oneliner-text">"가장 차가운 빛이 허락하는, 가장 무해한 일시정지."</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 최종 리플렉션 -->
+    <div class="final-reflection fade-up">
+      <div class="final-quote">
+        역할 프롬프트는 AI에게 <strong>감각의 우선순위를 부여</strong>한다.<br>
+        같은 장면이 공간으로 번역될 때, 향으로 증류될 때,<br>
+        브랜드 언어로 압축될 때 — AI는 매번 다른 감각 체계를 켠다.<br><br>
+        그리고 세 역할이 합쳐졌을 때,<br>
+        <strong>어떤 AI도 혼자서는 만들지 못했을 언어</strong>가 나왔다.
+      </div>
+      <div class="final-sub">
+        실험의 끝은 언제나 다음 질문이다.<br>
+        "어떤 역할을, 어떤 모델에게, 어떤 순서로 줄 것인가."
+      </div>
+    </div>
+
+  </div>
+</section>
+
 <!-- 푸터 -->
 <footer>
   <div class="footer-inner">
@@ -892,6 +1464,21 @@ var observer = new IntersectionObserver(function(entries) {
 
 document.querySelectorAll('.fade-up').forEach(function(el) {
   observer.observe(el);
+});
+
+// ── 매트릭스 탭 전환
+var tabs = document.querySelectorAll('.matrix-tab');
+tabs.forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    var panelId = this.getAttribute('data-panel');
+    // 탭 active
+    tabs.forEach(function(t){ t.classList.remove('active'); });
+    this.classList.add('active');
+    // 패널 전환
+    document.querySelectorAll('.matrix-panel').forEach(function(p){ p.classList.remove('active'); });
+    var target = document.getElementById('panel-' + panelId);
+    if(target) target.classList.add('active');
+  });
 });
 
 // ── 파티클 생성
