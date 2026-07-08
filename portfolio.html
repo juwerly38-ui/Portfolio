@@ -303,6 +303,108 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;
 .vp-text{font-size:13px;color:rgba(255,255,255,.85);line-height:1.5;}
 .vp-text strong{color:#fff;}
 
+/* ── AI 관점 섹션 ── */
+.ai-view-section{
+  background:linear-gradient(135deg,#080f1f 0%,#0f1a14 60%,#080f1f 100%);
+  border-radius:var(--radius);padding:56px 48px;margin-bottom:0;
+  position:relative;overflow:hidden;
+}
+.ai-view-section::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 500px 300px at 20% 50%,rgba(0,195,0,.07) 0%,transparent 70%),
+    radial-gradient(ellipse 400px 400px at 80% 20%,rgba(124,58,237,.06) 0%,transparent 70%);
+  pointer-events:none;
+}
+.av-eyebrow{
+  font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+  color:rgba(74,222,128,.7);margin-bottom:16px;
+}
+.av-title{
+  font-size:clamp(22px,2.8vw,32px);font-weight:800;color:#fff;
+  line-height:1.25;letter-spacing:-.5px;margin-bottom:20px;max-width:560px;
+}
+.av-title .av-gr{
+  background:linear-gradient(135deg,#4ade80,#60a5fa);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.av-desc{
+  font-size:14px;color:rgba(255,255,255,.6);line-height:1.9;
+  max-width:620px;margin-bottom:40px;
+}
+.av-desc strong{color:rgba(255,255,255,.9);}
+.av-cards{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
+  position:relative;z-index:1;margin-bottom:32px;
+}
+.av-card{
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;padding:24px 20px;
+  transition:border-color .3s,transform .3s;
+}
+.av-card:hover{border-color:rgba(255,255,255,.15);transform:translateY(-2px);}
+.av-card-num{
+  font-size:28px;font-weight:900;letter-spacing:-1px;
+  margin-bottom:10px;
+  background:linear-gradient(135deg,#4ade80,#60a5fa);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.av-card-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:8px;line-height:1.4;}
+.av-card-desc{font-size:12px;color:rgba(255,255,255,.45);line-height:1.7;}
+.av-quote{
+  padding:24px 28px;
+  background:rgba(255,255,255,.02);
+  border-left:3px solid rgba(74,222,128,.4);
+  border-radius:0 12px 12px 0;
+  position:relative;z-index:1;
+}
+.av-quote-text{
+  font-size:clamp(14px,1.5vw,17px);
+  color:rgba(255,255,255,.7);
+  line-height:1.85;font-style:italic;
+}
+.av-quote-text strong{color:#fff;font-style:normal;}
+
+/* ── 탐구 타임라인 (Project 02 리라이팅용) ── */
+.process-timeline{
+  display:flex;flex-direction:column;gap:0;
+  margin-bottom:28px;
+  position:relative;
+}
+.process-timeline::before{
+  content:'';position:absolute;left:17px;top:8px;bottom:28px;width:2px;
+  background:linear-gradient(180deg,#bbf7d0,rgba(187,247,208,.1) 100%);
+}
+.pt-item{
+  display:flex;gap:20px;padding:0 0 28px 0;
+  position:relative;
+}
+.pt-dot{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  background:#f0fdf4;border:2px solid #bbf7d0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;position:relative;z-index:1;
+}
+.pt-content{flex:1;padding-top:4px;}
+.pt-step{
+  font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;
+  color:var(--green);margin-bottom:4px;
+}
+.pt-title{
+  font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.4;
+}
+.pt-body{
+  font-size:13px;color:var(--text-s);line-height:1.75;
+}
+.pt-body strong{color:var(--text);}
+.pt-quote{
+  margin-top:8px;padding:10px 14px;
+  background:#f0fdf4;border-left:2px solid #4ade80;
+  border-radius:0 8px 8px 0;
+  font-size:12px;color:#166534;line-height:1.65;font-style:italic;
+}
+
 /* ── 푸터 ── */
 footer{background:#0a1628;color:rgba(255,255,255,.4);text-align:center;
        padding:32px 20px;font-size:12px;}
@@ -318,6 +420,8 @@ footer strong{color:rgba(255,255,255,.7);}
   .ba-grid{grid-template-columns:1fr;}
   .ai-flow{flex-direction:column;align-items:stretch;}
   .ai-arrow{transform:rotate(90deg);text-align:center;}
+  .av-cards{grid-template-columns:1fr;}
+  .ai-view-section{padding:32px 20px;}
 }
 
 /* ── 인쇄 ── */
@@ -337,6 +441,7 @@ footer strong{color:rgba(255,255,255,.7);}
 <nav>
   <div class="nav-logo">Portfolio</div>
   <div class="nav-links">
+    <a href="#ai-view">AI 관점</a>
     <a href="#background">배경</a>
     <a href="#project1">프로젝트 1</a>
     <a href="#threshold">Threshold</a>
@@ -376,14 +481,56 @@ footer strong{color:rgba(255,255,255,.7);}
       </div>
       <div class="cover-card">
         <div class="cover-card-icon">🤖</div>
-        <div class="cover-card-label">Key Method</div>
-        <div class="cover-card-val">AI(ChatGPT·Claude)<br>적극 활용</div>
+        <div class="cover-card-label">AI 관점</div>
+        <div class="cover-card-val">AI는 도구가 아니라<br>실험 대상</div>
       </div>
     </div>
 
     <div class="cover-scroll">▼ scroll</div>
   </div>
 </section>
+
+<!-- ═══ AI 관점 ═══ -->
+<div id="ai-view" style="background:#080f1f;border-top:1px solid rgba(255,255,255,.06);">
+<div class="section" style="padding:48px 40px;">
+  <div class="ai-view-section">
+    <div class="av-eyebrow">AI를 바라보는 관점</div>
+    <h2 class="av-title">AI는 도구가 아니라<br><span class="av-gr">실험 대상이다</span></h2>
+    <p class="av-desc">
+      저는 AI를 <strong>빠르게 처리하기 위한 도구</strong>로 쓰지 않습니다.<br>
+      어떤 질문을 던지면 어떤 방식으로 생각하는지,
+      같은 장면에 다른 역할을 주면 무엇이 달라지는지 —<br>
+      <strong>AI가 세계를 이해하는 방식 자체를 탐구합니다.</strong><br><br>
+      그 탐구가 업무에서는 시스템 기획으로,
+      개인 실험에서는 Threshold 프로젝트로 이어졌습니다.
+    </p>
+    <div class="av-cards">
+      <div class="av-card">
+        <div class="av-card-num">01</div>
+        <div class="av-card-title">AI에게 역할을 준다</div>
+        <div class="av-card-desc">같은 장면도 공간 디자이너로, 향수 조향사로, 브랜드 기획자로 보면 다르게 번역된다. 역할 프롬프트는 AI의 감각 체계를 전환하는 스위치다.</div>
+      </div>
+      <div class="av-card">
+        <div class="av-card-num">02</div>
+        <div class="av-card-title">AI에게 맥락을 쌓는다</div>
+        <div class="av-card-desc">"통역사마다 준비 시간이 다르다"는 실무 맥락을 전달하면, AI는 그것을 7단계 슬롯 판정 로직으로 설계한다. 맥락의 깊이가 결과의 질을 결정한다.</div>
+      </div>
+      <div class="av-card">
+        <div class="av-card-num">03</div>
+        <div class="av-card-title">AI의 차이를 읽는다</div>
+        <div class="av-card-desc">GPT는 감정, Claude는 관계와 존재, Gemini는 구조와 개념으로 접근한다. 이 차이를 알면 어떤 AI를 어떤 목적으로 쓸지 설계할 수 있다.</div>
+      </div>
+    </div>
+    <div class="av-quote">
+      <div class="av-quote-text">
+        젠틀몬스터 AI Experience팀에 지원하는 이유도 여기에 있습니다.<br>
+        <strong>AI가 경험을 어떻게 이해하는가</strong>를 탐구하는 것이
+        저에게는 이미 일상적인 실험이기 때문입니다.
+      </div>
+    </div>
+  </div>
+</div>
+</div>
 
 <!-- ═══ 배경 ═══ -->
 <div id="background">
@@ -799,9 +946,61 @@ window.addEventListener('message', function(e) {
   <div class="section-label">Project 02</div>
   <h2 class="section-title">통번역사 스케줄 관리 시스템 기획</h2>
   <p class="section-desc">
-    통번역사 일정 관리 및 임직원의 실시간 섭외 가능 여부 확인을 위한 웹 시스템을
-    AI와 협업하여 요구사항 정의부터 동작 가능한 프로토타입까지 직접 기획.
+    "엑셀로 수기 관리하는 스케줄을 시스템화할 수 있을까?"<br>
+    그 질문 하나에서 시작해, 요구사항 정의부터 동작하는 프로토타입까지 AI와 단독으로 탐구한 과정.
   </p>
+
+  <!-- 탐구 과정 타임라인 -->
+  <div class="process-timeline">
+    <div class="pt-item">
+      <div class="pt-dot">🔍</div>
+      <div class="pt-content">
+        <div class="pt-step">Step 01 · 문제 정의</div>
+        <div class="pt-title">"엑셀이 문제가 아니었다. 로직이 없는 게 문제였다"</div>
+        <div class="pt-body">
+          스케줄 관리의 핵심 어려움을 분석하니, 단순한 도구 문제가 아니었다.
+          <strong>통역사마다 준비 시간이 다르고, 긴급 신청 기준이 불명확하며, 배정 우선순위가 사람의 직관에만 의존</strong>하고 있었다.
+          이 비정형 로직을 먼저 언어로 정의하는 것이 시작이었다.
+        </div>
+      </div>
+    </div>
+    <div class="pt-item">
+      <div class="pt-dot">💬</div>
+      <div class="pt-content">
+        <div class="pt-step">Step 02 · AI와의 대화</div>
+        <div class="pt-title">실무 언어를 시스템 언어로 번역하는 과정</div>
+        <div class="pt-body">
+          "통역사마다 가능한 시간이 다르고, 회의 후 준비 시간도 사람마다 달라요" —
+          이 한 문장을 AI에게 전달했더니 <strong>7단계 슬롯 상태 판정 로직</strong>이 나왔다.
+          질문을 더 구체화할수록 AI가 설계하는 구조도 정교해졌다.
+        </div>
+        <div class="pt-quote">"재가 말한 것보다 AI가 더 많은 것을 구조화했다. 그래서 내가 미처 생각 못 한 엳지 케이스도 발견했다."</div>
+      </div>
+    </div>
+    <div class="pt-item">
+      <div class="pt-dot">🔧</div>
+      <div class="pt-content">
+        <div class="pt-step">Step 03 · 구현과 검증</div>
+        <div class="pt-title">만들고 → 써보고 → 다시 질문하는 루프</div>
+        <div class="pt-body">
+          프로토타입을 실제 관리자·통역사에게 보여준 후 피드백 8건을 수집했다.
+          그 피드백을 다시 AI에게 전달해 <strong>구현 가능 여부 분석 → 우선순위 분류 → 개선 방향 제시</strong>까지
+          AI와 함께 처리했다. 개발자 없이도 제품의 방향을 다듬는 과정이 가능했다.
+        </div>
+      </div>
+    </div>
+    <div class="pt-item">
+      <div class="pt-dot">📄</div>
+      <div class="pt-content">
+        <div class="pt-step">Step 04 · 기획서 산출</div>
+        <div class="pt-title">"개발자에게 전달 가능한 문서"를 AI와 직접 제작</div>
+        <div class="pt-body">
+          시스템 플로우 순서도 7개, 데이터 모델 5개 Entity, REST API 14종 엔드포인트.
+          <strong>기술 용어를 몰라도, AI와 반복적으로 대화하면 개발팀이 바로 쓸 수 있는 기획서가 나온다</strong>는 것을 확인했다.
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="project-wrapper">
     <div class="project-card">
