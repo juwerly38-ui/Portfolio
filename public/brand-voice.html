@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brand Voice Extractor</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07070f;
+    --surface: rgba(255,255,255,.04);
+    --border: rgba(255,255,255,.08);
+    --border-hover: rgba(255,255,255,.15);
+    --text: #f1f1f1;
+    --text-s: rgba(255,255,255,.5);
+    --accent: #a78bfa;
+    --accent-2: #34d399;
+    --radius: 16px;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+    min-height: 100%;
+  }
+
+  /* 배경 그라데이션 */
+  .bg-glow {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 60vw 50vh at 10% 20%, rgba(124,58,237,.08) 0%, transparent 70%),
+      radial-gradient(ellipse 50vw 50vh at 90% 80%, rgba(52,211,153,.06) 0%, transparent 70%);
+  }
+
+  .container {
+    position: relative; z-index: 1;
+    max-width: 860px; margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* 헤더 */
+  .page-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 56px;
+  }
+  .nav-back {
+    font-size: 13px; color: var(--text-s);
+    text-decoration: none; transition: color .2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .nav-back:hover { color: var(--text); }
+  .nav-badge {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--accent);
+    background: rgba(167,139,250,.1); border: 1px solid rgba(167,139,250,.2);
+    padding: 4px 10px; border-radius: 20px;
+  }
+
+  .page-header { margin-bottom: 48px; }
+  .page-eyebrow {
+    font-size: 10px; font-weight: 800; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .page-title {
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 800; line-height: 1.2;
+    letter-spacing: -.5px; margin-bottom: 16px;
+  }
+  .page-title span {
+    background: linear-gradient(135deg, #a78bfa, #34d399);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .page-desc {
+    font-size: 15px; color: var(--text-s); line-height: 1.8;
+    max-width: 580px;
+  }
+
+  /* 스텝 인디케이터 */
+  .steps {
+    display: flex; align-items: center; gap: 0;
+    margin-bottom: 40px;
+  }
+  .step {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 600;
+    color: var(--text-s); transition: color .3s;
+  }
+  .step.active { color: var(--text); }
+  .step.done { color: var(--accent-2); }
+  .step-num {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--surface); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; transition: all .3s;
+  }
+  .step.active .step-num {
+    background: rgba(167,139,250,.15); border-color: var(--accent);
+    color: var(--accent);
+  }
+  .step.done .step-num {
+    background: rgba(52,211,153,.15); border-color: var(--accent-2);
+    color: var(--accent-2);
+  }
+  .step-line {
+    flex: 1; height: 1px; background: var(--border);
+    margin: 0 10px; max-width: 60px;
+  }
+
+  /* 카드 */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px 36px;
+    margin-bottom: 24px;
+    transition: border-color .3s;
+  }
+  .card:hover { border-color: var(--border-hover); }
+  .card-title {
+    font-size: 14px; font-weight: 700; color: var(--text);
+    margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
+  }
+  .card-title i { color: var(--accent); font-size: 13px; }
+  .card-desc { font-size: 12px; color: var(--text-s); margin-bottom: 20px; line-height: 1.7; }
+
+  /* 텍스트에어리어 */
+  textarea {
+    width: 100%; background: rgba(255,255,255,.03);
+    border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); font-size: 13px; line-height: 1.8;
+    padding: 16px; resize: vertical; outline: none;
+    font-family: inherit; transition: border-color .3s;
+  }
+  textarea:focus { border-color: rgba(167,139,250,.4); }
+  textarea::placeholder { color: rgba(255,255,255,.2); }
+
+  /* 예시 버튼 */
+  .example-btns {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;
+  }
+  .example-btn {
+    font-size: 11px; padding: 5px 12px;
+    background: rgba(167,139,250,.06); border: 1px solid rgba(167,139,250,.15);
+    border-radius: 20px; color: rgba(167,139,250,.8);
+    cursor: pointer; transition: all .2s;
+  }
+  .example-btn:hover {
+    background: rgba(167,139,250,.12); border-color: rgba(167,139,250,.3);
+    color: var(--accent);
+  }
+
+  /* 주요 버튼 */
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    color: #fff; border: none; border-radius: 10px;
+    padding: 14px 28px; font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: all .3s; letter-spacing: .3px;
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(124,58,237,.3);
+  }
+  .btn-primary:disabled {
+    opacity: .5; cursor: not-allowed; transform: none;
+  }
+  .btn-secondary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text-s); border-radius: 10px;
+    padding: 12px 20px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all .2s;
+  }
+  .btn-secondary:hover { border-color: var(--border-hover); color: var(--text); }
+
+  /* 분석 결과 */
+  .result-section { display: none; }
+  .result-section.visible { display: block; }
+
+  .analysis-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    margin-bottom: 24px;
+  }
+  .analysis-item {
+    background: rgba(255,255,255,.02); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px;
+  }
+  .analysis-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    font-size: 11px; padding: 4px 10px;
+    background: rgba(167,139,250,.08); border: 1px solid rgba(167,139,250,.15);
+    border-radius: 20px; color: rgba(255,255,255,.75);
+  }
+  .tag.avoid {
+    background: rgba(251,113,133,.06); border-color: rgba(251,113,133,.15);
+    color: rgba(251,113,133,.7);
+  }
+  .analysis-text {
+    font-size: 13px; color: var(--text-s); line-height: 1.75;
+  }
+  .personality-box {
+    background: linear-gradient(135deg, rgba(124,58,237,.08), rgba(52,211,153,.06));
+    border: 1px solid rgba(167,139,250,.15);
+    border-radius: 12px; padding: 20px 24px; margin-bottom: 24px;
+  }
+  .personality-label {
+    font-size: 10px; font-weight: 800; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--accent-2);
+    margin-bottom: 8px;
+  }
+  .personality-text {
+    font-size: 16px; font-weight: 700; color: var(--text);
+    line-height: 1.5; letter-spacing: -.2px;
+  }
+
+  /* 맥락 선택 */
+  .context-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    margin-bottom: 20px;
+  }
+  .context-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 12px;
+    cursor: pointer; text-align: center; transition: all .2s;
+  }
+  .context-btn:hover { border-color: var(--border-hover); }
+  .context-btn.selected {
+    background: rgba(167,139,250,.08);
+    border-color: rgba(167,139,250,.35);
+  }
+  .context-icon { font-size: 18px; margin-bottom: 6px; }
+  .context-label { font-size: 11px; font-weight: 600; color: var(--text); }
+  .context-sub { font-size: 10px; color: var(--text-s); margin-top: 2px; }
+
+  /* 변환 결과 */
+  .transform-result {
+    background: rgba(52,211,153,.04); border: 1px solid rgba(52,211,153,.12);
+    border-radius: 12px; padding: 24px 28px; margin-bottom: 20px;
+  }
+  .transform-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--accent-2); margin-bottom: 12px;
+  }
+  .transform-text {
+    font-size: 14px; color: var(--text); line-height: 1.9;
+    white-space: pre-wrap;
+  }
+  .consistency-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .consistency-item {
+    display: flex; gap: 10px; align-items: flex-start;
+    font-size: 12px; color: var(--text-s); line-height: 1.6;
+  }
+  .consistency-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent-2); flex-shrink: 0; margin-top: 6px;
+  }
+
+  /* 로딩 */
+  .loading-ring {
+    display: inline-block; width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff; border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* 에러 */
+  .error-box {
+    background: rgba(251,113,133,.06); border: 1px solid rgba(251,113,133,.2);
+    border-radius: 10px; padding: 14px 18px;
+    font-size: 13px; color: rgba(251,113,133,.9);
+    margin-top: 12px; display: none;
+  }
+  .error-box.visible { display: block; }
+
+  /* 커스텀 맥락 입력 */
+  .custom-input {
+    display: none; margin-top: 12px;
+  }
+  .custom-input.visible { display: block; }
+  .custom-input input {
+    width: 100%; background: rgba(255,255,255,.03);
+    border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); font-size: 13px;
+    padding: 10px 14px; outline: none; font-family: inherit;
+    transition: border-color .3s;
+  }
+  .custom-input input:focus { border-color: rgba(167,139,250,.4); }
+
+  /* 반응형 */
+  @media(max-width: 640px) {
+    .container { padding: 32px 16px 60px; }
+    .card { padding: 24px 20px; }
+    .analysis-grid { grid-template-columns: 1fr; }
+    .context-grid { grid-template-columns: repeat(2, 1fr); }
+    .steps { display: none; }
+  }
+
+  /* 페이드인 */
+  .fade-in {
+    animation: fadeIn .5s ease forwards;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* 구분선 */
+  .divider {
+    height: 1px; background: var(--border);
+    margin: 40px 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+
+<div class="container">
+
+  <!-- 네비 -->
+  <nav class="page-nav">
+    <a href="./index.html" class="nav-back">
+      <i class="fas fa-arrow-left"></i> Portfolio
+    </a>
+    <span class="nav-badge">AI Experiment</span>
+  </nav>
+
+  <!-- 헤더 -->
+  <header class="page-header">
+    <div class="page-eyebrow">Brand Voice Extractor</div>
+    <h1 class="page-title">
+      브랜드의 언어를<br>
+      <span>구조로 만든다</span>
+    </h1>
+    <p class="page-desc">
+      텍스트 샘플 3~5개를 붙여넣으면 AI가 브랜드 보이스를 분석합니다.<br>
+      분석된 패턴으로 어떤 맥락의 텍스트든 즉시 변환할 수 있어요.
+    </p>
+  </header>
+
+  <!-- 스텝 인디케이터 -->
+  <div class="steps" id="steps">
+    <div class="step active" id="step1">
+      <div class="step-num">1</div>
+      <span>샘플 입력</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="step2">
+      <div class="step-num">2</div>
+      <span>보이스 분석</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="step3">
+      <div class="step-num">3</div>
+      <span>맥락 변환</span>
+    </div>
+  </div>
+
+  <!-- STEP 1: 샘플 입력 -->
+  <section id="section-input">
+    <div class="card">
+      <div class="card-title">
+        <i class="fas fa-pen-nib"></i>
+        브랜드 텍스트 샘플 입력
+      </div>
+      <div class="card-desc">
+        브랜드의 공식 카피, SNS 텍스트, 제품 설명, 웹사이트 문구 등<br>
+        해당 브랜드의 실제 언어가 담긴 텍스트를 3개 이상 붙여넣어주세요.
+      </div>
+      <textarea
+        id="samples-input"
+        rows="10"
+        placeholder="예시&#10;&#10;우리는 경계를 지운다. 공간과 오브제, 예술과 일상 사이에 존재하는 선을.&#10;&#10;— 보이지 않는 것을 보게 하는 것이 디자인의 목적이다.&#10;&#10;MASK02. 새로운 면을 발견하는 순간은 언제나 예상 밖에 있다."
+      ></textarea>
+      <div class="example-btns">
+        <span style="font-size:11px;color:var(--text-s);padding:5px 0;align-self:center;">예시 불러오기:</span>
+        <button class="example-btn" onclick="loadExample('minimal')">✦ 미니멀 럭셔리</button>
+        <button class="example-btn" onclick="loadExample('tech')">⚡ 테크 스타트업</button>
+        <button class="example-btn" onclick="loadExample('wellness')">🌿 웰니스 브랜드</button>
+        <button class="example-btn" onclick="loadExample('art')">🎨 아트 기반</button>
+      </div>
+      <div class="error-box" id="input-error"></div>
+      <div style="margin-top:20px;display:flex;gap:10px;align-items:center;">
+        <button class="btn-primary" id="analyze-btn" onclick="analyzeVoice()">
+          <i class="fas fa-sparkles"></i>
+          보이스 분석하기
+        </button>
+        <span style="font-size:12px;color:var(--text-s);">약 5~10초 소요</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2: 분석 결과 -->
+  <section class="result-section" id="section-analysis">
+    <div class="divider"></div>
+
+    <div style="margin-bottom:24px;">
+      <div class="page-eyebrow" style="margin-bottom:8px;">분석 완료</div>
+      <h2 style="font-size:22px;font-weight:800;letter-spacing:-.3px;">브랜드 보이스 프로파일</h2>
+    </div>
+
+    <!-- 브랜드 인격 강조 -->
+    <div class="personality-box fade-in" id="personality-box">
+      <div class="personality-label">Brand Personality</div>
+      <div class="personality-text" id="personality-text">—</div>
+    </div>
+
+    <!-- 분석 그리드 -->
+    <div class="analysis-grid fade-in">
+      <div class="analysis-item">
+        <div class="analysis-label">Tone</div>
+        <div class="tag-list" id="tone-tags"></div>
+      </div>
+      <div class="analysis-item">
+        <div class="analysis-label">Keywords</div>
+        <div class="tag-list" id="keyword-tags"></div>
+      </div>
+      <div class="analysis-item">
+        <div class="analysis-label">Sentence Pattern</div>
+        <div class="analysis-text" id="pattern-text">—</div>
+      </div>
+      <div class="analysis-item">
+        <div class="analysis-label">Avoid</div>
+        <div class="tag-list" id="avoid-tags"></div>
+      </div>
+    </div>
+
+    <!-- 요약 -->
+    <div class="card fade-in" style="background:rgba(255,255,255,.02);">
+      <div class="analysis-label">Summary</div>
+      <div class="analysis-text" id="summary-text">—</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- STEP 3: 맥락 변환 -->
+    <section id="section-transform">
+      <div style="margin-bottom:24px;">
+        <div class="page-eyebrow" style="margin-bottom:8px;">맥락 변환</div>
+        <h2 style="font-size:22px;font-weight:800;letter-spacing:-.3px;">이 보이스로 무엇을 쓸까요?</h2>
+        <p style="font-size:13px;color:var(--text-s);margin-top:8px;line-height:1.7;">
+          분석된 브랜드 보이스를 유지하면서 원하는 형식의 텍스트를 즉시 생성합니다.
+        </p>
+      </div>
+
+      <div class="context-grid" id="context-grid">
+        <div class="context-btn" onclick="selectContext('job_posting', this)">
+          <div class="context-icon">📋</div>
+          <div class="context-label">채용 공고</div>
+          <div class="context-sub">JD 작성</div>
+        </div>
+        <div class="context-btn" onclick="selectContext('product_desc', this)">
+          <div class="context-icon">📦</div>
+          <div class="context-label">제품 소개</div>
+          <div class="context-sub">Product Copy</div>
+        </div>
+        <div class="context-btn" onclick="selectContext('sns_caption', this)">
+          <div class="context-icon">📱</div>
+          <div class="context-label">SNS 캡션</div>
+          <div class="context-sub">Instagram</div>
+        </div>
+        <div class="context-btn" onclick="selectContext('exhibition', this)">
+          <div class="context-icon">🖼️</div>
+          <div class="context-label">전시 설명</div>
+          <div class="context-sub">도슨트 텍스트</div>
+        </div>
+        <div class="context-btn" onclick="selectContext('email', this)">
+          <div class="context-icon">✉️</div>
+          <div class="context-label">공식 이메일</div>
+          <div class="context-sub">Brand Email</div>
+        </div>
+        <div class="context-btn" onclick="selectContext('custom', this)">
+          <div class="context-icon">✏️</div>
+          <div class="context-label">직접 입력</div>
+          <div class="context-sub">Custom</div>
+        </div>
+      </div>
+
+      <div class="custom-input" id="custom-input">
+        <input type="text" id="custom-context-text" placeholder="어떤 형식이 필요하신가요? (예: 브랜드 스토리, 패키지 문구, 앱 온보딩 텍스트)" />
+      </div>
+
+      <div class="error-box" id="transform-error"></div>
+
+      <div style="margin-top:20px;display:flex;gap:10px;align-items:center;">
+        <button class="btn-primary" id="transform-btn" onclick="transformVoice()" disabled>
+          <i class="fas fa-wand-magic-sparkles"></i>
+          변환하기
+        </button>
+        <button class="btn-secondary" onclick="resetAll()">
+          <i class="fas fa-rotate-left"></i>
+          처음부터
+        </button>
+      </div>
+
+      <!-- 변환 결과 -->
+      <div id="section-transform-result" style="display:none; margin-top:32px;" class="fade-in">
+        <div class="transform-result">
+          <div class="transform-label" id="transform-context-label">결과</div>
+          <div class="transform-text" id="transform-output">—</div>
+        </div>
+        <div class="card" style="background:rgba(255,255,255,.02);">
+          <div class="analysis-label" style="margin-bottom:12px;">
+            <i class="fas fa-check-circle" style="color:var(--accent-2);margin-right:6px;"></i>
+            보이스 일관성 근거
+          </div>
+          <ul class="consistency-list" id="consistency-list"></ul>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:10px;">
+          <button class="btn-secondary" onclick="transformVoice()">
+            <i class="fas fa-rotate"></i> 다시 생성
+          </button>
+          <button class="btn-secondary" onclick="copyOutput()">
+            <i class="fas fa-copy"></i> 복사
+          </button>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- 푸터 -->
+  <footer style="margin-top:80px;padding-top:32px;border-top:1px solid var(--border);text-align:center;">
+    <p style="font-size:12px;color:rgba(255,255,255,.25);">
+      Brand Voice Extractor · AI Experiment by
+      <a href="./index.html" style="color:rgba(255,255,255,.4);text-decoration:none;">Portfolio</a>
+    </p>
+  </footer>
+
+</div>
+
+<script>
+// ── 예시 데이터 ──
+const examples = {
+  minimal: `우리는 덜어낸다. 필요한 것만 남기고, 나머지는 침묵이 말하게 한다.
+
+형태는 목적을 따른다. 그러나 목적이 전부가 아니다 — 여백도 디자인이다.
+
+새로운 시즌, 같은 철학. 변하지 않는 것을 통해 변화를 말한다.`,
+
+  tech: `우리는 복잡한 문제를 가장 단순한 방법으로 해결합니다. 기술은 도구일 뿐, 중요한 건 사람입니다.
+
+제품 하나로 팀의 일하는 방식이 달라집니다. 더 빠르게, 더 명확하게, 더 함께.
+
+오늘 배포한 기능이 내일 누군가의 하루를 바꿉니다. 그게 우리가 코드를 쓰는 이유입니다.`,
+
+  wellness: `자연은 이미 알고 있습니다. 우리는 그것을 다시 당신에게 전합니다.
+
+몸이 필요로 하는 것, 마음이 원하는 것. 그 사이 어딘가에 우리가 있습니다.
+
+성분 하나하나를 고를 때, 우리는 항상 같은 질문을 합니다 — 이것이 정말 필요한가?`,
+
+  art: `작품은 완성되는 순간 작가를 떠난다. 이후는 보는 사람의 것이다.
+
+우리가 만드는 공간은 경험이다. 들어오기 전과 나간 후, 당신이 조금 달라져있기를 바란다.
+
+예술과 상업 사이의 경계는 없다. 다만 의도의 밀도가 다를 뿐이다.`
+}
+
+let currentAnalysis = null
+let selectedContext = null
+
+function loadExample(type) {
+  document.getElementById('samples-input').value = examples[type]
+}
+
+function selectContext(ctx, el) {
+  // 선택 상태 토글
+  document.querySelectorAll('.context-btn').forEach(b => b.classList.remove('selected'))
+  el.classList.add('selected')
+  selectedContext = ctx
+
+  // 커스텀 입력 토글
+  const customInput = document.getElementById('custom-input')
+  if (ctx === 'custom') {
+    customInput.classList.add('visible')
+  } else {
+    customInput.classList.remove('visible')
+  }
+
+  document.getElementById('transform-btn').disabled = false
+}
+
+async function analyzeVoice() {
+  const samples = document.getElementById('samples-input').value.trim()
+  const errorBox = document.getElementById('input-error')
+  const btn = document.getElementById('analyze-btn')
+
+  errorBox.classList.remove('visible')
+
+  if (samples.length < 20) {
+    errorBox.textContent = '텍스트 샘플을 더 입력해주세요 (20자 이상)'
+    errorBox.classList.add('visible')
+    return
+  }
+
+  // 로딩 상태
+  btn.disabled = true
+  btn.innerHTML = '<div class="loading-ring"></div> 분석 중...'
+
+  // 스텝 업데이트
+  document.getElementById('step1').classList.remove('active')
+  document.getElementById('step1').classList.add('done')
+  document.getElementById('step2').classList.add('active')
+
+  try {
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ samples })
+    })
+    const data = await res.json()
+
+    if (!res.ok || data.error) {
+      throw new Error(data.error || '분석에 실패했습니다')
+    }
+
+    currentAnalysis = data.analysis
+    renderAnalysis(data.analysis)
+
+    // 결과 섹션 표시
+    document.getElementById('section-analysis').classList.add('visible')
+    document.getElementById('section-analysis').scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+    // 스텝 업데이트
+    document.getElementById('step2').classList.remove('active')
+    document.getElementById('step2').classList.add('done')
+    document.getElementById('step3').classList.add('active')
+
+  } catch (e) {
+    errorBox.textContent = e.message
+    errorBox.classList.add('visible')
+
+    document.getElementById('step1').classList.add('active')
+    document.getElementById('step1').classList.remove('done')
+    document.getElementById('step2').classList.remove('active')
+  } finally {
+    btn.disabled = false
+    btn.innerHTML = '<i class="fas fa-sparkles"></i> 다시 분석하기'
+  }
+}
+
+function renderAnalysis(analysis) {
+  // 브랜드 인격
+  document.getElementById('personality-text').textContent = analysis.personality || '—'
+
+  // 톤 태그
+  const toneEl = document.getElementById('tone-tags')
+  toneEl.innerHTML = (analysis.tone || []).map(t =>
+    `<span class="tag">${t}</span>`
+  ).join('')
+
+  // 키워드 태그
+  const kwEl = document.getElementById('keyword-tags')
+  kwEl.innerHTML = (analysis.keywords || []).map(k =>
+    `<span class="tag">${k}</span>`
+  ).join('')
+
+  // 문장 패턴
+  document.getElementById('pattern-text').textContent = analysis.sentence_pattern || '—'
+
+  // 피해야 할 표현
+  const avoidEl = document.getElementById('avoid-tags')
+  avoidEl.innerHTML = (analysis.avoid || []).map(a =>
+    `<span class="tag avoid">${a}</span>`
+  ).join('')
+
+  // 요약
+  document.getElementById('summary-text').textContent = analysis.summary || '—'
+}
+
+async function transformVoice() {
+  if (!currentAnalysis || !selectedContext) return
+
+  const errorBox = document.getElementById('transform-error')
+  const btn = document.getElementById('transform-btn')
+  errorBox.classList.remove('visible')
+
+  const customContext = selectedContext === 'custom'
+    ? document.getElementById('custom-context-text').value.trim()
+    : undefined
+
+  if (selectedContext === 'custom' && !customContext) {
+    errorBox.textContent = '어떤 형식으로 변환할지 입력해주세요'
+    errorBox.classList.add('visible')
+    return
+  }
+
+  btn.disabled = true
+  btn.innerHTML = '<div class="loading-ring"></div> 변환 중...'
+
+  try {
+    const res = await fetch('/api/transform', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        analysis: currentAnalysis,
+        context: selectedContext,
+        customContext
+      })
+    })
+    const data = await res.json()
+
+    if (!res.ok || data.error) {
+      throw new Error(data.error || '변환에 실패했습니다')
+    }
+
+    renderTransform(data.result)
+
+    document.getElementById('section-transform-result').style.display = 'block'
+    document.getElementById('section-transform-result').scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+    // 스텝 완료
+    document.getElementById('step3').classList.remove('active')
+    document.getElementById('step3').classList.add('done')
+
+  } catch (e) {
+    errorBox.textContent = e.message
+    errorBox.classList.add('visible')
+  } finally {
+    btn.disabled = false
+    btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> 변환하기'
+  }
+}
+
+function renderTransform(result) {
+  document.getElementById('transform-context-label').textContent =
+    result.context_label || '변환 결과'
+  document.getElementById('transform-output').textContent = result.output || '—'
+
+  const listEl = document.getElementById('consistency-list')
+  listEl.innerHTML = (result.consistency_points || []).map(p =>
+    `<li class="consistency-item">
+      <div class="consistency-dot"></div>
+      <span>${p}</span>
+    </li>`
+  ).join('')
+}
+
+function copyOutput() {
+  const text = document.getElementById('transform-output').textContent
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target.closest('button')
+    const orig = btn.innerHTML
+    btn.innerHTML = '<i class="fas fa-check"></i> 복사됨'
+    setTimeout(() => { btn.innerHTML = orig }, 2000)
+  })
+}
+
+function resetAll() {
+  currentAnalysis = null
+  selectedContext = null
+
+  document.getElementById('samples-input').value = ''
+  document.getElementById('section-analysis').classList.remove('visible')
+  document.getElementById('section-transform-result').style.display = 'none'
+  document.getElementById('input-error').classList.remove('visible')
+  document.getElementById('transform-error').classList.remove('visible')
+  document.getElementById('analyze-btn').innerHTML = '<i class="fas fa-sparkles"></i> 보이스 분석하기'
+  document.getElementById('analyze-btn').disabled = false
+  document.getElementById('transform-btn').disabled = true
+  document.querySelectorAll('.context-btn').forEach(b => b.classList.remove('selected'))
+  document.getElementById('custom-input').classList.remove('visible')
+
+  // 스텝 리셋
+  document.getElementById('step1').className = 'step active'
+  document.getElementById('step2').className = 'step'
+  document.getElementById('step3').className = 'step'
+
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+</script>
+</body>
+</html>

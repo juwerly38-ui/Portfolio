@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>통역사 스케줄 관리 시스템 — 기획서 v1.0</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root{
+    --green:#00C300;--green-light:#e8fde8;--green-mid:#bbf7d0;
+    --blue:#2563eb;--blue-light:#dbeafe;
+    --amber:#d97706;--amber-light:#fef3c7;
+    --red:#dc2626;--red-light:#fee2e2;
+    --gray:#6b7280;--gray-light:#f8f9fa;
+    --border:#e5e7eb;
+    --text:#1f2937;--text-sub:#6b7280;
+    --radius:10px;
+    --shadow:0 2px 12px rgba(0,0,0,.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans-serif;
+       background:#f1f5f9;color:var(--text);line-height:1.7;font-size:14px;}
+
+  /* ── 커버 ── */
+  .cover{background:linear-gradient(135deg,#00C300,#06C755);
+         color:#fff;padding:60px 40px;text-align:center;position:relative;overflow:hidden;}
+  .cover::before{content:'';position:absolute;top:-60px;right:-60px;
+                  width:300px;height:300px;background:rgba(255,255,255,.07);border-radius:50%;}
+  .cover-title{font-size:32px;font-weight:800;letter-spacing:-1px;margin-bottom:10px;}
+  .cover-subtitle{font-size:16px;opacity:.88;margin-bottom:30px;}
+  .cover-meta{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;font-size:13px;opacity:.85;}
+  .cover-meta span{background:rgba(255,255,255,.15);padding:5px 16px;border-radius:20px;}
+
+  /* ── 레이아웃 ── */
+  .wrapper{max-width:1100px;margin:0 auto;padding:40px 20px 80px;}
+
+  /* ── 섹션 ── */
+  .section{background:#fff;border-radius:14px;box-shadow:var(--shadow);
+           border:1px solid var(--border);margin-bottom:32px;overflow:hidden;}
+  .section-header{padding:20px 28px;border-bottom:1px solid var(--border);
+                  display:flex;align-items:center;gap:12px;}
+  .section-num{width:32px;height:32px;background:linear-gradient(135deg,var(--green),#06C755);
+               color:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;
+               font-weight:700;font-size:14px;flex-shrink:0;}
+  .section-title{font-size:18px;font-weight:700;color:var(--text);}
+  .section-body{padding:24px 28px;}
+
+  /* ── 공통 요소 ── */
+  h3{font-size:15px;font-weight:700;color:var(--text);margin:20px 0 10px;
+     padding-left:10px;border-left:3px solid var(--green);}
+  h3:first-child{margin-top:0;}
+  h4{font-size:13px;font-weight:700;color:var(--text-sub);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px;}
+  p{margin-bottom:10px;color:#374151;}
+  ul,ol{padding-left:20px;margin-bottom:10px;}
+  li{margin-bottom:4px;color:#374151;}
+
+  /* ── 뱃지 ── */
+  .badge{display:inline-flex;align-items:center;gap:3px;padding:2px 10px;border-radius:12px;
+         font-size:11px;font-weight:700;white-space:nowrap;}
+  .badge-green{background:var(--green-light);color:#166534;}
+  .badge-blue{background:var(--blue-light);color:var(--blue);}
+  .badge-amber{background:var(--amber-light);color:var(--amber);}
+  .badge-red{background:var(--red-light);color:var(--red);}
+  .badge-gray{background:#f3f4f6;color:var(--gray);}
+  .badge-purple{background:#ede9fe;color:#7c3aed;}
+
+  /* ── 정보 박스 ── */
+  .info-box{border-radius:var(--radius);padding:14px 18px;margin-bottom:14px;border-left:4px solid;}
+  .info-box.green{background:var(--green-light);border-color:var(--green);}
+  .info-box.blue{background:var(--blue-light);border-color:var(--blue);}
+  .info-box.amber{background:var(--amber-light);border-color:var(--amber);}
+  .info-box.red{background:var(--red-light);border-color:var(--red);}
+  .info-box p{margin:0;font-size:13px;}
+  .info-box strong{color:var(--text);}
+
+  /* ── 테이블 ── */
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;}
+  th{background:#f8f9fa;padding:9px 12px;text-align:left;font-weight:700;
+     color:#374151;border:1px solid var(--border);}
+  td{padding:8px 12px;border:1px solid var(--border);vertical-align:top;color:#374151;}
+  tr:hover td{background:#fafafa;}
+  td code{background:#f3f4f6;padding:1px 5px;border-radius:4px;font-size:12px;font-family:monospace;}
+
+  /* ── 역할 카드 ── */
+  .role-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:20px;}
+  .role-card{border-radius:var(--radius);padding:18px;border:2px solid;}
+  .role-card.requester{border-color:var(--green);background:#f0fdf4;}
+  .role-card.admin{border-color:var(--blue);background:#eff6ff;}
+  .role-card.interpreter{border-color:var(--amber);background:#fffbeb;}
+  .role-card-title{font-weight:700;font-size:15px;margin-bottom:8px;}
+  .role-card ul{margin:0;padding-left:16px;}
+  .role-card li{font-size:12px;margin-bottom:3px;}
+
+  /* ── API 카드 ── */
+  .api-list{display:flex;flex-direction:column;gap:8px;}
+  .api-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;
+            background:#f8f9fa;border-radius:8px;border:1px solid var(--border);}
+  .api-method{font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;
+              min-width:48px;text-align:center;flex-shrink:0;margin-top:1px;}
+  .api-method.get{background:#dcfce7;color:#166534;}
+  .api-method.post{background:#dbeafe;color:#1d4ed8;}
+  .api-method.patch{background:#fef3c7;color:#92400e;}
+  .api-method.delete{background:#fee2e2;color:#991b1b;}
+  .api-path{font-family:monospace;font-size:12px;font-weight:600;color:#1d4ed8;}
+  .api-desc{font-size:12px;color:var(--text-sub);margin-top:2px;}
+
+  /* ── 다이어그램 래퍼 ── */
+  .diagram-wrap{background:#fff;border:1px solid var(--border);border-radius:10px;
+                padding:20px;overflow-x:auto;margin-bottom:16px;}
+  .diagram-wrap .mermaid{min-width:600px;}
+
+  /* ── TOC ── */
+  .toc{background:#fff;border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--border);
+       padding:24px 28px;margin-bottom:32px;}
+  .toc-title{font-size:15px;font-weight:700;margin-bottom:14px;color:var(--text);}
+  .toc-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;list-style:none;padding:0;}
+  .toc-list li a{display:block;padding:8px 12px;border-radius:8px;color:var(--blue);
+                  text-decoration:none;font-size:13px;font-weight:500;
+                  border:1px solid var(--border);transition:all .2s;}
+  .toc-list li a:hover{background:var(--blue-light);border-color:#93c5fd;}
+  .toc-num{color:var(--gray);font-size:11px;margin-right:6px;}
+
+  /* ── 플로우 범례 ── */
+  .legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray);}
+  .legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+
+  /* ── 인라인 코드 블록 ── */
+  pre{background:#1e293b;color:#e2e8f0;border-radius:8px;padding:16px;
+      overflow-x:auto;font-size:12px;line-height:1.6;margin-bottom:14px;}
+  pre code{font-family:'Courier New',monospace;}
+  .code-label{font-size:11px;font-weight:700;color:var(--gray);margin-bottom:6px;text-transform:uppercase;}
+
+  /* ── 버전 태그 ── */
+  .version-bar{background:#f8f9fa;border-radius:8px;padding:10px 16px;margin-bottom:16px;
+               display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;}
+
+  /* ── 모바일 ── */
+  @media(max-width:600px){
+    .cover{padding:40px 20px;}
+    .cover-title{font-size:24px;}
+    .section-body{padding:16px 18px;}
+    .cover-meta{gap:10px;}
+  }
+
+  /* ── 인쇄 ── */
+  @media print{
+    body{background:#fff;}
+    .cover{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .section{box-shadow:none;page-break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ 커버 ═══════════════════════ -->
+<div class="cover">
+  <div class="cover-title">📅 통역사 스케줄 관리 시스템</div>
+  <div class="cover-subtitle">기획서 · 기능 명세 · API 설계서 — 개발자 / PM 참조용</div>
+  <div class="cover-meta">
+    <span>📌 버전 v1.0</span>
+    <span>📆 2026-04-23</span>
+    <span>🔖 프로토타입 기준</span>
+    <span>👤 개발자 · PM 전용</span>
+  </div>
+</div>
+
+<div class="wrapper">
+
+<!-- ═══════════════════════ TOC ═══════════════════════ -->
+<div class="toc">
+  <div class="toc-title">📑 목차</div>
+  <ul class="toc-list">
+    <li><a href="#s1"><span class="toc-num">01</span>프로젝트 개요</a></li>
+    <li><a href="#s2"><span class="toc-num">02</span>역할(Role) 설계</a></li>
+    <li><a href="#s3"><span class="toc-num">03</span>시스템 상수 & 비즈니스 규칙</a></li>
+    <li><a href="#s4"><span class="toc-num">04</span>전체 시스템 플로우</a></li>
+    <li><a href="#s5"><span class="toc-num">05</span>슬롯 상태 판정 로직</a></li>
+    <li><a href="#s6"><span class="toc-num">06</span>신청 접수 플로우 (C안 — 인트라넷 연동)</a></li>
+    <li><a href="#s7"><span class="toc-num">07</span>관리자 승인 플로우</a></li>
+    <li><a href="#s8"><span class="toc-num">08</span>긴급 신청 & D+3 버퍼 로직</a></li>
+    <li><a href="#s9"><span class="toc-num">09</span>통역사 가능시간 등록 플로우</a></li>
+    <li><a href="#s10"><span class="toc-num">10</span>데이터 모델</a></li>
+    <li><a href="#s11"><span class="toc-num">11</span>API 명세</a></li>
+    <li><a href="#s12"><span class="toc-num">12</span>화면 구성 (탭별)</a></li>
+    <li><a href="#s13"><span class="toc-num">13</span>구현 범위 및 미구현 항목</a></li>
+    <li><a href="#s14"><span class="toc-num">14</span>기술 스택 & 배포 가이드</a></li>
+  </ul>
+</div>
+
+<!-- ═══ 01. 프로젝트 개요 ═══ -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <div class="section-num">01</div>
+    <div class="section-title">프로젝트 개요</div>
+  </div>
+  <div class="section-body">
+    <div class="version-bar">
+      <span class="badge badge-green">프로토타입 v0.9</span>
+      <span class="badge badge-blue">단일 HTML SPA</span>
+      <span class="badge badge-amber">백엔드 연동 전</span>
+    </div>
+
+    <h3>목적</h3>
+    <p>사내 통역사 리소스를 체계적으로 관리하고, 신청자가 원하는 일정에 통역 지원을 요청할 수 있는 <strong>통합 스케줄 관리 시스템</strong>입니다. 현재는 프론트엔드 프로토타입으로 구현되어 있으며, 이 문서는 향후 백엔드 API 연동 및 실서비스 전환을 위한 기준서입니다.</p>
+
+    <h3>핵심 가치</h3>
+    <ul>
+      <li>신청자가 통역사 가용 여부를 <strong>실시간으로 확인</strong>하고 신청 가능</li>
+      <li>일반 / 긴급 신청을 자동 분류하여 <strong>적절한 통역사 리소스 배분</strong></li>
+      <li>관리자가 수동 개입 없이도 <strong>자동 배정 제안</strong>을 받아 승인</li>
+      <li>정례 회의를 등록하면 <strong>자동으로 일정 생성</strong>하여 반복 신청 불필요</li>
+      <li>인트라넷 신청 폼과 <strong>API 자동 연동</strong>으로 중복 입력 제거</li>
+    </ul>
+
+    <h3>시스템 범위</h3>
+    <div style="overflow-x:auto;">
+    <table>
+      <thead><tr><th>구분</th><th>내용</th><th>비고</th></tr></thead>
+      <tbody>
+        <tr><td>언어쌍</td><td>JP→KR, KR→JP, JP↔KR 양방향</td><td>현재 일본어-한국어만 지원</td></tr>
+        <tr><td>통역 형태</td><td>원격(화상), 대면(현장)</td><td>원격: Zoom URL 필수</td></tr>
+        <tr><td>운영 시간</td><td>정규 10:00–19:00, 연장 08:00–10:00 / 19:00–21:00</td><td>기본적으로 연장 시간대 비노출</td></tr>
+        <tr><td>슬롯 단위</td><td>30분 단위</td><td>신청 가능 소요시간: 30/60/90분</td></tr>
+        <tr><td>통역사 풀</td><td>일반(JP→KR 전담) 8명 + 긴급(양방향) 6명</td><td>더미 데이터 기준</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 02. 역할 설계 ═══ -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <div class="section-num">02</div>
+    <div class="section-title">역할(Role) 설계</div>
+  </div>
+  <div class="section-body">
+    <div class="role-grid">
+      <div class="role-card requester">
+        <div class="role-card-title">🙋 신청자 (Requester)</div>
+        <ul>
+          <li>일별·주별·월별 스케줄 열람</li>
+          <li>가용 슬롯 클릭 → 신청 모달 (또는 인트라넷 폼으로 이동)</li>
+          <li>본인 신청 건 조회 및 상태 확인</li>
+          <li>정례 신청 제출</li>
+          <li>통역사 이름·상세 정보 비공개</li>
+          <li>긴급 신청 제한(D+3 버퍼 적용)</li>
+        </ul>
+      </div>
+      <div class="role-card admin">
+        <div class="role-card-title">🛠️ 관리자 (Admin)</div>
+        <ul>
+          <li>전체 스케줄·통역사 현황 열람</li>
+          <li>예약 신청 승인/반려 (수동 통역사 지정 가능)</li>
+          <li>통역사 CRUD</li>
+          <li>통역사 가능시간 등록</li>
+          <li>수기 블록 설정 (요일 기반)</li>
+          <li>회의 직접 추가/수정/삭제</li>
+          <li>CSV 내보내기</li>
+        </ul>
+      </div>
+      <div class="role-card interpreter">
+        <div class="role-card-title">🎤 통역사 (Interpreter)</div>
+        <ul>
+          <li>본인 일정만 열람</li>
+          <li>가능시간 등록/수정</li>
+          <li>오늘 가능시간 미등록 시 경고 배지</li>
+          <li>일별 뷰에서 본인 슬롯 상태 확인</li>
+          <li>회의 추가/삭제 권한 없음</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="info-box amber">
+      <p><strong>역할 전환 (프로토타입):</strong> 헤더 드롭다운에서 역할을 전환합니다. 실서비스에서는 사내 SSO/계정 시스템으로 role을 서버 세션에서 반환해야 합니다. 통역사 역할 선택 시 통역사 드롭다운이 추가 노출됩니다.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 03. 시스템 상수 & 비즈니스 규칙 ═══ -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <div class="section-num">03</div>
+    <div class="section-title">시스템 상수 & 비즈니스 규칙</div>
+  </div>
+  <div class="section-body">
+    <h3>시간대 상수</h3>
+    <table>
+      <thead><tr><th>상수</th><th>값</th><th>설명</th></tr></thead>
+      <tbody>
+        <tr><td><code>EXT_BEFORE</code></td><td>8 (08:00)</td><td>연장 시간 시작 (연장 전)</td></tr>
+        <tr><td><code>CORE_START</code></td><td>10 (10:00)</td><td>정규 시간 시작</td></tr>
+        <tr><td><code>CORE_END</code></td><td>19 (19:00)</td><td>정규 시간 종료 기준</td></tr>
+        <tr><td><code>CORE_END_MIN</code></td><td>1110 (18:30분)</td><td>18:30 슬롯을 정규로 판정하기 위한 경계값</td></tr>
+        <tr><td><code>EXT_AFTER</code></td><td>21 (21:00)</td><td>연장 시간 종료</td></tr>
+        <tr><td><code>REST_BUFFER</code></td><td>60분</td><td>회의 후 준비 시간</td></tr>
+        <tr><td><code>HIDE_EXT_SLOTS</code></td><td>true</td><td>기본 연장 슬롯 비노출 (관리자 설정으로 해제 가능)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>통역사 타입 & 배정 정책</h3>
+    <table>
+      <thead><tr><th>타입</th><th>지원 방향</th><th>배정 우선순위</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge badge-green">일반 (general)</span></td><td>JP→KR 전용</td><td>일반 신청 우선 배정, 정례 전담</td></tr>
+        <tr><td><span class="badge badge-amber">긴급 (emergency)</span></td><td>JP↔KR 양방향</td><td>긴급 신청 전용, JP→KR도 지원 가능</td></tr>
+      </tbody>
+    </table>
+
+    <h3>자동 긴급 전환 규칙</h3>
+    <table>
+      <thead><tr><th>회의 형태</th><th>통역 방향</th><th>결과</th></tr></thead>
+      <tbody>
+        <tr><td>원격(화상)</td><td>JP→KR</td><td><span class="badge badge-green">일반</span></td></tr>
+        <tr><td>원격(화상)</td><td>KR→JP</td><td><span class="badge badge-amber">⚡ 긴급 자동 전환</span></td></tr>
+        <tr><td>원격(화상)</td><td>JP↔KR 양방향</td><td><span class="badge badge-amber">⚡ 긴급 자동 전환</span> (통역사 2명 배정 시도)</td></tr>
+        <tr><td>대면(현장)</td><td>방향 무관</td><td><span class="badge badge-blue">1인 양방향</span> (긴급 리소스 사용)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>하루 최대 배정 시간</h3>
+    <div class="info-box green">
+      <p>통역사 1인당 <strong>하루 최대 240분(4시간)</strong> 배정. 초과 시 해당 슬롯은 <span class="badge badge-gray">limit</span> 상태로 표시.</p>
+    </div>
+
+    <h3>수기 블록 (Manual Block)</h3>
+    <p>관리자가 특정 요일·시간대를 영구 차단 설정 가능. 해당 슬롯은 <span class="badge badge-amber">🔒 블록</span>으로 표시되며 신청 불가.</p>
+  </div>
+</div>
+
+<!-- ═══ 04. 전체 시스템 플로우 ═══ -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <div class="section-num">04</div>
+    <div class="section-title">전체 시스템 플로우</div>
+  </div>
+  <div class="section-body">
+    <div class="info-box blue">
+      <p><strong>읽는 법:</strong> 사각형=처리, 마름모=분기, 둥근 사각형=시작/끝, 원통=데이터 저장</p>
+    </div>
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart TD
+    A([사용자 접속]) --> B{역할 확인\nSSO / 드롭다운}
+    B -->|신청자| C[일별/주별/월별 뷰]
+    B -->|관리자| D[전체 뷰 + 관리탭]
+    B -->|통역사| E[본인 행만 표시]
+
+    C --> F[가용 슬롯 클릭]
+    F --> G{날짜 유형}
+    G -->|휴일/주말| H[신청 불가 안내]
+    G -->|평일| I{신청 유형 선택}
+    I -->|일반 신청| J[신청서 처리]
+    I -->|긴급 신청| K{D+3 버퍼 확인}
+    K -->|버퍼 이내 - 오픈| J
+    K -->|버퍼 초과 - 잠김| L[🔒 신청 차단]
+
+    J --> M{신청 방식\nC안 선택}
+    M -->|인트라넷 폼으로 이동| N[인트라넷 URL 이동\n날짜/시간 파라미터 전달]
+    N --> O[인트라넷 폼 작성·제출]
+    O --> P[인트라넷 API - 스케줄 시스템 POST]
+    P --> Q[(reservations DB)]
+    M -->|모달 내 직접 신청| R[신청 모달 입력]
+    R --> S{필수값 검증}
+    S -->|검증 실패| T[오류 안내]
+    S -->|검증 통과| U[자동 긴급 전환 판정]
+    U --> Q
+
+    Q --> V[관리자 알림\n미승인 건 배지]
+    V --> W[관리자 승인 모달]
+    W --> X{배정 방식}
+    X -->|자동 배정| Y[최소 누적 시간 통역사 선택]
+    X -->|수동 선택| Z[관리자 직접 통역사 지정]
+    Y --> AA[회의 생성 - meetings DB]
+    Z --> AA
+    AA --> AB[신청자에게 승인 결과 반영]
+    AA --> AC[통역사 일정에 슬롯 추가]
+
+    D --> AD[통역사 CRUD]
+    D --> AE[수기 블록 설정]
+    D --> AF[CSV 내보내기]
+
+    E --> AG[본인 가능시간 등록]
+    AG --> AH[(availability DB)]
+    AH --> AI[스케줄 슬롯 상태 재계산]
+
+    style A fill:#00C300,color:#fff,stroke:none
+    style H fill:#fee2e2,stroke:#fca5a5
+    style L fill:#fef3c7,stroke:#fcd34d
+    style T fill:#fee2e2,stroke:#fca5a5
+    style Q fill:#dbeafe,stroke:#93c5fd
+    style AA fill:#dcfce7,stroke:#86efac
+    style AH fill:#dbeafe,stroke:#93c5fd
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 05. 슬롯 상태 판정 로직 ═══ -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <div class="section-num">05</div>
+    <div class="section-title">슬롯 상태 판정 로직 (getSlotStatus)</div>
+  </div>
+  <div class="section-body">
+    <h3>상태 종류</h3>
+    <table>
+      <thead><tr><th>상태값</th><th>표시</th><th>설명</th></tr></thead>
+      <tbody>
+        <tr><td><code>holiday</code></td><td><span class="badge badge-gray">휴일</span></td><td>한국 공휴일 또는 주말</td></tr>
+        <tr><td><code>occupied</code></td><td><span class="badge badge-red">점유</span></td><td>미팅이 배정된 슬롯 (회의 중)</td></tr>
+        <tr><td><code>rest</code></td><td><span class="badge badge-amber">준비</span></td><td>회의 종료 후 REST_BUFFER(60분) 준비 시간</td></tr>
+        <tr><td><code>limit</code></td><td><span class="badge badge-gray">한도초과</span></td><td>당일 누적 배정이 240분 초과</td></tr>
+        <tr><td><code>unavailable</code></td><td><span class="badge badge-gray">불가</span></td><td>가능시간 미등록 또는 등록 범위 밖</td></tr>
+        <tr><td><code>available</code></td><td><span class="badge badge-green">협의 필요</span></td><td>신청 가능 (클릭 시 신청 처리)</td></tr>
+        <tr><td><code>blocked</code></td><td><span class="badge badge-amber">🔒 블록</span></td><td>관리자 수기 블록</td></tr>
+      </tbody>
+    </table>
+
+    <h3>판정 순서도</h3>
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart TD
+    A([슬롯 판정 시작\ninterpId, date, slotIdx]) --> B{공휴일 또는\n주말인가?}
+    B -->|Yes| C([holiday])
+    B -->|No| D{수기 블록\n해당 슬롯?}
+    D -->|Yes| E([blocked])
+    D -->|No| F{해당 슬롯에\n진행중 미팅 존재?}
+    F -->|Yes| G([occupied])
+    F -->|No| H{이전 미팅 종료\n후 60분 이내?}
+    H -->|Yes| I([rest])
+    H -->|No| J{오늘 누적\n배정 ≥ 240분?}
+    J -->|Yes| K([limit])
+    J -->|No| L{통역사 가능시간\n등록 여부 확인}
+    L -->|미등록| M([unavailable])
+    L -->|등록됨| N{특정일 또는\n반복 가능시간이\n해당 슬롯 포함?}
+    N -->|포함 안 됨| O([unavailable])
+    N -->|포함됨| P([available])
+
+    style C fill:#f3f4f6,stroke:#d1d5db
+    style E fill:#fef3c7,stroke:#fcd34d
+    style G fill:#fca5a5,stroke:#ef4444,color:#fff
+    style I fill:#fef9c3,stroke:#fcd34d
+    style K fill:#f3f4f6,stroke:#d1d5db
+    style M fill:#f9fafb,stroke:#e5e7eb
+    style O fill:#f9fafb,stroke:#e5e7eb
+    style P fill:#dcfce7,stroke:#86efac
+      </div>
+    </div>
+
+    <h3>신청자 뷰에서의 표시 차이</h3>
+    <div class="info-box blue">
+      <p>신청자는 통역사 이름이나 회의명이 <strong>비공개</strong>입니다. 점유된 슬롯은 <strong>🔴 불가예상</strong>으로만 표시됩니다. 가용 슬롯은 <strong>🟢 협의 필요</strong>로 표시되어 클릭 시 신청 처리로 이어집니다.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 06. 신청 접수 플로우 (C안) ═══ -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <div class="section-num">06</div>
+    <div class="section-title">신청 접수 플로우 — C안: 인트라넷 연동</div>
+  </div>
+  <div class="section-body">
+
+    <div class="info-box amber">
+      <p><strong>C안 선택 이유:</strong> 신청서는 사내 인트라넷 폼에 이미 존재합니다. 스케줄 시스템에서 신청을 받는 대신, 해당 폼으로 사용자를 안내하고 인트라넷 폼 제출 시 API를 통해 스케줄 시스템에 자동으로 데이터가 전달되는 방식입니다. 중복 입력을 제거하고 기존 프로세스를 유지할 수 있습니다.</p>
+    </div>
+
+    <h3>C안 전체 흐름도</h3>
+    <div class="diagram-wrap">
+      <div class="mermaid">
+sequenceDiagram
+    autonumber
+    actor User as 신청자
+    participant Sched as 스케줄 시스템
+    participant Intra as 인트라넷 폼
+    participant API as 스케줄 API 서버
+    participant DB as DB (reservations)
+
+    User->>Sched: 가용 슬롯 클릭
+    Sched->>Sched: 슬롯 정보 파악\n(date, time, isEmergency)
+    Sched->>User: 인트라넷 폼 URL로 리다이렉트\n?date=YYYY-MM-DD&time=HH:MM&emergency=0
+    User->>Intra: 인트라넷 폼 자동 열림\n(날짜·시간 자동 채워짐)
+    User->>Intra: 나머지 필드 입력 후 제출
+    Intra->>API: POST /api/reservations\n{date, time, title, requester, ...}
+    API->>API: 필수값 검증\n긴급 여부 자동 판정
+    API->>DB: 예약 저장 (status: pending)
+    API->>Intra: 200 OK + reservationId
+    Intra->>User: 제출 완료 안내
+    Note over Sched,API: 스케줄 시스템은 폴링 또는 WebSocket으로\n신규 pending 건 감지, 관리자에게 배지 표시
+      </div>
+    </div>
+
+    <h3>인트라넷 연동 URL 규격 (협의 필요)</h3>
+    <table>
+      <thead><tr><th>파라미터</th><th>타입</th><th>설명</th><th>예시</th></tr></thead>
+      <tbody>
+        <tr><td><code>date</code></td><td>string</td><td>신청 날짜</td><td><code>2026-04-28</code></td></tr>
+        <tr><td><code>time</code></td><td>string</td><td>시작 시간</td><td><code>14:00</code></td></tr>
+        <tr><td><code>emergency</code></td><td>0 / 1</td><td>긴급 신청 여부</td><td><code>0</code></td></tr>
+        <tr><td><code>source</code></td><td>string</td><td>출처 식별자 (선택)</td><td><code>schedule_system</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-box blue">
+      <p><strong>미결정 사항:</strong> 인트라넷 폼의 정확한 Base URL 및 파라미터 수신 방식은 인트라넷 담당자와 별도 협의가 필요합니다. 위 파라미터는 권고안이며, 인트라넷 폼 측 개발 일정과 맞추어 최종 확정 필요합니다.</p>
+    </div>
+
+    <h3>인트라넷 API - 스케줄 시스템 POST 규격</h3>
+    <div class="code-label">POST /api/reservations</div>
+    <pre><code>{
+  "title":          "회의명",            // string, 필수
+  "requesterName":  "신청자 이름",        // string, 필수
+  "date":           "2026-04-28",        // YYYY-MM-DD, 필수
+  "startTime":      "14:00",             // HH:MM, 필수
+  "duration":       60,                  // 30 | 60 | 90 (분)
+  "meetingFormat":  "remote",            // "remote" | "onsite"
+  "zoomLink":       "https://zoom.us/j/...", // remote 시 필수
+  "meetingLocation": "",                 // onsite 시 필수
+  "direction":      "JP_KR",            // "JP_KR" | "KR_JP" | "both"
+  "meetingType":    "general",           // "general" | "education" | "large"
+  "notes":          "비고 사항",          // string, 선택
+  "source":         "intranet"           // 출처 식별자 (선택)
+}
+
+// 서버 응답 (200 OK)
+{
+  "id":         "res-uuid-1234",
+  "status":     "pending",
+  "isEmergency": false,                  // 서버에서 자동 판정
+  "message":    "신청이 접수되었습니다."
+}</code></pre>
+
+    <h3>외부 링크 상수 (프론트엔드)</h3>
+    <pre><code>// src/index.js (또는 환경변수로 관리 권장)
+const EXTERNAL_LINK = "https://intranet.company.com/request";
+// 슬롯 클릭 시: EXTERNAL_LINK + "?date=2026-04-28&time=14:00"</code></pre>
+  </div>
+</div>
+
+<!-- ═══ 07. 관리자 승인 플로우 ═══ -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <div class="section-num">07</div>
+    <div class="section-title">관리자 승인 플로우</div>
+  </div>
+  <div class="section-body">
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart TD
+    A([관리자 접속]) --> B{미승인 건 존재?}
+    B -->|없음| C[대기 없음]
+    B -->|있음| D["상단 배지 표시
+예약 신청 대기 N건"]
+    D --> E[배지 클릭 - 승인 모달]
+    E --> F["긴급 큐 / 일반 큐 분리 표시"]
+    F --> G["각 신청 항목 확인
+회의명 / 날짜 / 시간 / 방향 / 유형"]
+
+    G --> H{배정 방식 선택}
+    H -->|자동 배정| I["getAvailableInterpreters 호출"]
+    H -->|수동 선택| J["드롭다운에서 통역사 직접 지정"]
+
+    I --> K{방향별 분기}
+    K -->|JP to KR| L["일반 통역사 우선<br/>긴급 통역사 차순"]
+    K -->|KR to JP| M["긴급 통역사만<br/>최소 누적시간 기준"]
+    K -->|양방향| N["긴급 통역사 2명 시도<br/>1명만 가능 시 부분 승인"]
+
+    L --> O["bestOf 함수
+당일 누적 최소 통역사 선택"]
+    M --> O
+    N --> O
+    J --> O
+
+    O --> P{배정 가능 여부}
+    P -->|가능| Q["회의 생성
+status: approved"]
+    P -->|불가| R["승인 실패 알림
+관리자에게 수동 처리 요청"]
+
+    Q --> S["예약 approved 처리
+통역사 일정에 반영"]
+    S --> T[토스트 알림 표시]
+
+    G --> U[반려 선택]
+    U --> V["반려 사유 입력
+rejectReason 저장"]
+    V --> W[status: rejected]
+
+    style Q fill:#dcfce7,stroke:#86efac
+    style R fill:#fee2e2,stroke:#fca5a5
+    style W fill:#fee2e2,stroke:#fca5a5
+      </div>
+    </div>
+
+    <h3>자동 배정 우선순위 규칙</h3>
+    <table>
+      <thead><tr><th>신청 유형</th><th>1순위</th><th>2순위</th><th>3순위</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>일반 JP→KR</td>
+          <td>일반 통역사 (당일 누적 최소)</td>
+          <td>긴급 통역사 (JP→KR 가능)</td>
+          <td>배정 불가</td>
+        </tr>
+        <tr>
+          <td>긴급 KR→JP</td>
+          <td>긴급 통역사 (당일 누적 최소)</td>
+          <td>배정 불가</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>양방향 JP↔KR</td>
+          <td>긴급 통역사 2명</td>
+          <td>긴급 통역사 1명 (부분 승인)</td>
+          <td>배정 불가</td>
+        </tr>
+        <tr>
+          <td>대면 (방향 무관)</td>
+          <td>긴급 통역사 1명 (최소 누적)</td>
+          <td>배정 불가</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ 08. 긴급 신청 & D+3 버퍼 로직 ═══ -->
+<div class="section" id="s8">
+  <div class="section-header">
+    <div class="section-num">08</div>
+    <div class="section-title">긴급 신청 & D+3 버퍼 계산 로직</div>
+  </div>
+  <div class="section-body">
+    <h3>버퍼 개념</h3>
+    <div class="info-box amber">
+      <p><strong>D+3 영업일:</strong> 오늘(D)로부터 <strong>영업일 기준 3일 후</strong>까지만 긴급 신청이 가능합니다. 영업일은 한국 공휴일과 주말을 제외합니다. 일본 공휴일은 <strong>영업일로 간주</strong>합니다.</p>
+    </div>
+
+    <h3>D+3 계산 플로우</h3>
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart LR
+    A([오늘 D]) --> B[영업일 카운터 = 0]
+    B --> C[다음날로 이동]
+    C --> D{한국 공휴일\n또는 주말?}
+    D -->|Yes| C
+    D -->|No| E[영업일 +1]
+    E --> F{카운터 == 3?}
+    F -->|No| C
+    F -->|Yes| G([openDate = 해당 날짜])
+
+    G --> H{신청 대상 날짜\n≤ openDate?}
+    H -->|오픈| I(["긴급 신청 가능 🔓"])
+    H -->|잠김| J(["긴급 신청 불가 🔒"])
+
+    style I fill:#dcfce7,stroke:#86efac
+    style J fill:#fef3c7,stroke:#fcd34d
+      </div>
+    </div>
+
+    <h3>예시 케이스</h3>
+    <table>
+      <thead><tr><th>시나리오</th><th>오늘(D)</th><th>D+1</th><th>D+2</th><th>D+3 = openDate</th><th>D+4</th></tr></thead>
+      <tbody>
+        <tr><td>평일 연속</td><td>월</td><td>화 ✅</td><td>수 ✅</td><td>목 ✅ 오픈</td><td>금 🔒</td></tr>
+        <tr><td>D+1이 공휴일</td><td>화</td><td>수(공휴일) ❌</td><td>목 ✅</td><td>금 ✅</td><td>토(스킵) → 월 ✅ 오픈</td></tr>
+        <tr><td>주말 걸침</td><td>목</td><td>금 ✅</td><td>토(스킵)</td><td>일(스킵) → 월 ✅</td><td>화 🔒</td></tr>
+      </tbody>
+    </table>
+
+    <h3>관련 함수</h3>
+    <div class="code-label">JavaScript (프론트엔드 → 백엔드 이전 필요)</div>
+    <pre><code>// D+3 영업일(마지막 오픈 날짜) 계산
+function calcBufferOpenDate() {
+  var d = new Date();
+  var count = 0;
+  while (count < 3) {
+    d = addDays(d, 1);
+    if (d.getDay() !== 0 && d.getDay() !== 6 && !isKrHoliday(dateStr(d))) {
+      count++;
+    }
+  }
+  return dateStr(d); // YYYY-MM-DD
+}
+
+// 해당 날짜가 긴급 신청 잠금 상태인지 판정
+function isBufferLocked(date) {
+  return date > calcBufferOpenDate(); // true = 잠김
+}
+
+// 백엔드 API 제공 권장: GET /api/schedule/buffer-close-date
+// 응답: { "openDate": "2026-04-30", "today": "2026-04-23" }</code></pre>
+  </div>
+</div>
+
+<!-- ═══ 09. 통역사 가능시간 등록 ═══ -->
+<div class="section" id="s9">
+  <div class="section-header">
+    <div class="section-num">09</div>
+    <div class="section-title">통역사 가능시간 등록 플로우</div>
+  </div>
+  <div class="section-body">
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart TD
+    A([통역사 / 관리자]) --> B[가능시간 등록 버튼 클릭\n🕐 가능시간]
+    B --> C[가능시간 모달 오픈\n현재 등록 현황 표시]
+    C --> D{등록 방식 선택}
+
+    D -->|특정 날짜 추가| E[날짜 + 시작/종료 시간 입력]
+    D -->|반복 요일 추가| F[요일 + 시작/종료 시간 입력]
+
+    E --> G[날짜 중복 검사]
+    G -->|중복| H[에러 안내]
+    G -->|통과| I[availability 배열에 추가]
+
+    F --> J[반복 요일 목록에 추가\nrecurringAvail 배열]
+
+    I --> K[저장 버튼 클릭]
+    J --> K
+
+    K --> L{백엔드 연동 전\n프로토타입}
+    L -->|현재| M[STATE.interpreters\n메모리 업데이트]
+    L -->|실서비스| N[PATCH /api/interpreters/id/availability]
+
+    M --> O[일별 뷰 재렌더링\n슬롯 상태 갱신]
+    N --> O
+
+    O --> P{오늘 가능시간\n등록 여부}
+    P -->|미등록| Q[🔴 ⚠ 미등록 배지 표시]
+    P -->|등록됨| R[🟢 ✓ 등록됨 배지 표시]
+
+    style M fill:#fef3c7,stroke:#fcd34d
+    style N fill:#dcfce7,stroke:#86efac
+    style Q fill:#fee2e2,stroke:#fca5a5
+    style R fill:#dcfce7,stroke:#86efac
+      </div>
+    </div>
+
+    <h3>가능시간 데이터 구조</h3>
+    <pre><code>// 특정 날짜 가능시간
+availability: [
+  { date: "2026-04-28", start: "10:00", end: "15:00" },
+  { date: "2026-04-29", start: "13:00", end: "19:00" }
+]
+
+// 반복 요일 가능시간 (매주 반복)
+recurringAvail: [
+  { dow: 1, start: "10:00", end: "19:00" },  // 월요일
+  { dow: 2, start: "10:00", end: "19:00" },  // 화요일
+  // ...
+]
+// dow: 0=일, 1=월, 2=화, 3=수, 4=목, 5=금, 6=토</code></pre>
+  </div>
+</div>
+
+<!-- ═══ 10. 데이터 모델 ═══ -->
+<div class="section" id="s10">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">데이터 모델 (Entity 설계)</div>
+  </div>
+  <div class="section-body">
+
+    <h3>interpreters (통역사)</h3>
+    <table>
+      <thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>integer / uuid</td><td>PK</td></tr>
+        <tr><td><code>name</code></td><td>string</td><td>통역사 이름</td></tr>
+        <tr><td><code>empId</code></td><td>string</td><td>사번 (예: GEN01, EMG01)</td></tr>
+        <tr><td><code>type</code></td><td>'general' | 'emergency'</td><td>통역사 타입</td></tr>
+        <tr><td><code>memo</code></td><td>string</td><td>메모 (예: JP→KR 전담)</td></tr>
+        <tr><td><code>availability</code></td><td>array</td><td>특정 날짜 가능시간 [{date, start, end}]</td></tr>
+        <tr><td><code>recurringAvail</code></td><td>array</td><td>반복 요일 가능시간 [{dow, start, end}]</td></tr>
+      </tbody>
+    </table>
+
+    <h3>meetings (확정 회의)</h3>
+    <table>
+      <thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>integer / uuid</td><td>PK</td></tr>
+        <tr><td><code>interpId</code></td><td>integer</td><td>FK → interpreters.id</td></tr>
+        <tr><td><code>title</code></td><td>string</td><td>회의명</td></tr>
+        <tr><td><code>date</code></td><td>YYYY-MM-DD</td><td>날짜</td></tr>
+        <tr><td><code>startTime</code></td><td>HH:MM</td><td>시작 시간</td></tr>
+        <tr><td><code>endTime</code></td><td>HH:MM</td><td>종료 시간</td></tr>
+        <tr><td><code>duration</code></td><td>integer (분)</td><td>소요시간</td></tr>
+        <tr><td><code>isExt</code></td><td>boolean</td><td>연장 시간대 여부</td></tr>
+        <tr><td><code>isRegular</code></td><td>boolean</td><td>정례 여부</td></tr>
+        <tr><td><code>regularGroupId</code></td><td>string | null</td><td>FK → regularGroups.id</td></tr>
+        <tr><td><code>status</code></td><td>'approved' | 'pending' | 'rejected'</td><td>상태</td></tr>
+        <tr><td><code>direction</code></td><td>'JP_KR' | 'KR_JP' | 'both' | 'both_onsite'</td><td>통역 방향</td></tr>
+        <tr><td><code>meetingFormat</code></td><td>'remote' | 'onsite'</td><td>회의 형태</td></tr>
+        <tr><td><code>meetingType</code></td><td>'general' | 'education' | 'large'</td><td>회의 유형</td></tr>
+        <tr><td><code>zoomLink</code></td><td>string</td><td>Zoom URL (원격 시)</td></tr>
+        <tr><td><code>meetingLocation</code></td><td>string</td><td>장소 (대면 시)</td></tr>
+        <tr><td><code>requesterName</code></td><td>string</td><td>신청자 이름</td></tr>
+      </tbody>
+    </table>
+
+    <h3>reservations (예약 신청)</h3>
+    <table>
+      <thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>integer / uuid</td><td>PK</td></tr>
+        <tr><td><code>title</code></td><td>string</td><td>회의명</td></tr>
+        <tr><td><code>requesterName</code></td><td>string</td><td>신청자 이름</td></tr>
+        <tr><td><code>date</code></td><td>YYYY-MM-DD</td><td>신청 날짜</td></tr>
+        <tr><td><code>startTime</code></td><td>HH:MM</td><td>시작 시간</td></tr>
+        <tr><td><code>duration</code></td><td>integer (분)</td><td>소요시간</td></tr>
+        <tr><td><code>status</code></td><td>'pending' | 'approved' | 'rejected'</td><td>처리 상태</td></tr>
+        <tr><td><code>isEmergency</code></td><td>boolean</td><td>긴급 여부 (시스템 자동 판정)</td></tr>
+        <tr><td><code>autoEmergencyReason</code></td><td>string</td><td>자동 전환 이유 (관리자 표시용)</td></tr>
+        <tr><td><code>direction</code></td><td>string</td><td>통역 방향</td></tr>
+        <tr><td><code>meetingFormat</code></td><td>string</td><td>회의 형태</td></tr>
+        <tr><td><code>meetingType</code></td><td>string</td><td>회의 유형</td></tr>
+        <tr><td><code>notes</code></td><td>string</td><td>비고</td></tr>
+        <tr><td><code>rejectReason</code></td><td>string</td><td>반려 사유 (반려 시)</td></tr>
+        <tr><td><code>requestDate</code></td><td>datetime</td><td>신청 일시</td></tr>
+        <tr><td><code>assignedInterpId</code></td><td>integer | null</td><td>승인 후 배정 통역사</td></tr>
+      </tbody>
+    </table>
+
+    <h3>regularGroups (정례 그룹)</h3>
+    <table>
+      <thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>string / uuid</td><td>PK</td></tr>
+        <tr><td><code>title</code></td><td>string</td><td>정례 회의명</td></tr>
+        <tr><td><code>requester</code></td><td>string</td><td>신청자</td></tr>
+        <tr><td><code>days</code></td><td>int[]</td><td>반복 요일 (1=월 ... 5=금)</td></tr>
+        <tr><td><code>cycle</code></td><td>'every' | 'biweekly' | 'monthly{n}'</td><td>반복 주기</td></tr>
+        <tr><td><code>time</code></td><td>HH:MM</td><td>시작 시간</td></tr>
+        <tr><td><code>duration</code></td><td>integer</td><td>소요시간(분)</td></tr>
+        <tr><td><code>startDate</code></td><td>YYYY-MM-DD</td><td>시작일</td></tr>
+        <tr><td><code>endDate</code></td><td>YYYY-MM-DD</td><td>종료일</td></tr>
+        <tr><td><code>status</code></td><td>'pending' | 'active' | 'cancelled'</td><td>상태</td></tr>
+        <tr><td><code>dates</code></td><td>string[]</td><td>전체 회차 날짜 목록</td></tr>
+        <tr><td><code>cancelledDates</code></td><td>string[]</td><td>취소된 회차 날짜 목록</td></tr>
+      </tbody>
+    </table>
+
+    <h3>manualBlocks (수기 블록)</h3>
+    <table>
+      <thead><tr><th>필드</th><th>타입</th><th>설명</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>integer / uuid</td><td>PK</td></tr>
+        <tr><td><code>dow</code></td><td>1–5</td><td>요일 (1=월 ... 5=금)</td></tr>
+        <tr><td><code>startTime</code></td><td>HH:MM</td><td>블록 시작</td></tr>
+        <tr><td><code>endTime</code></td><td>HH:MM</td><td>블록 종료</td></tr>
+        <tr><td><code>reason</code></td><td>string</td><td>블록 사유</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ 11. API 명세 ═══ -->
+<div class="section" id="s11">
+  <div class="section-header">
+    <div class="section-num">11</div>
+    <div class="section-title">API 명세 (백엔드 연동 설계)</div>
+  </div>
+  <div class="section-body">
+    <div class="info-box amber">
+      <p><strong>현재 상태:</strong> 프로토타입은 모든 데이터를 브라우저 메모리(STATE 객체)에 저장합니다. 아래 API는 <strong>실서비스 전환 시 구현해야 할 엔드포인트</strong>입니다. 프론트엔드 코드의 주석에 각 API가 대체할 위치가 명시되어 있습니다.</p>
+    </div>
+
+    <h3>인증 & 공통</h3>
+    <div class="api-list">
+      <div class="api-item">
+        <div class="api-method get">GET</div>
+        <div>
+          <div class="api-path">/api/auth/me</div>
+          <div class="api-desc">현재 로그인 사용자 정보 및 role 반환 (SSO 연동)</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>스케줄 조회</h3>
+    <div class="api-list">
+      <div class="api-item">
+        <div class="api-method get">GET</div>
+        <div>
+          <div class="api-path">/api/schedule/daily?date=YYYY-MM-DD&amp;role=...</div>
+          <div class="api-desc">일별 슬롯 현황 — 역할 기반 데이터 필터링 포함</div>
+        </div>
+      </div>
+      <div class="api-item">
+        <div class="api-method get">GET</div>
+        <div>
+          <div class="api-path">/api/schedule/weekly?start=YYYY-MM-DD</div>
+          <div class="api-desc">주간 회의 목록 (7일치)</div>
+        </div>
+      </div>
+      <div class="api-item">
+        <div class="api-method get">GET</div>
+        <div>
+          <div class="api-path">/api/schedule/monthly?year=YYYY&amp;month=MM</div>
+          <div class="api-desc">월별 일정 요약 (일별 건수)</div>
+        </div>
+      </div>
+      <div class="api-item">
+        <div class="api-method get">GET</div>
+        <div>
+          <div class="api-path">/api/schedule/buffer-close-date</div>
+          <div class="api-desc">D+3 영업일 계산 → openDate 반환 (한국 공휴일 DB 참조)</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>통역사</h3>
+    <div class="api-list">
+      <div class="api-item">
+        <div class="api-method get">GET</div>
+        <div>
+          <div class="api-path">/api/interpreters</div>
+          <div class="api-desc">전체 통역사 목록 (관리자만)</div>
+        </div>
+      </div>
+      <div class="api-item">
+        <div class="api-method post">POST</div>
+        <div>
+          <div class="api-path">/api/interpreters</div>
+          <div class="api-desc">통역사 추가</div>
+        </div>
+      </div>
+      <div class="api-item">
+        <div class="api-method patch">PATCH</div>
+        <div>
+          <div class="api-path">/api/interpreters/{id}</div>
+          <div class="api-desc">통역사 정보 수정</div>
+        </div>
+      </div>
+      <div class="api-item">
+        <div class="api-method delete">DELETE</div>
+        <div>
+          <div class="api-path">/api/interpreters/{id}</div>
+          <div class="api-desc">통역사 삭제</div>
+        </div>
+      </div>
+      <div class="api-item">
+        <div class="api-method patch">PATCH</div>
+        <div>
+          <div class="api-path">/api/interpreters/{id}/availability</div>
+          <div class="api-desc">가능시간 일괄 업데이트 (특정일 + 반복요일)</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>예약 신청</h3>
+    <div class="api-list">
+      <div class="api-item">
+        <div class="api-method get">GET</div>
+        <div>
+          <div class="api-path">/api/reservations?status=pending</div>
+          <div class="api-desc">미승인 예약 신청 목록 (관리자) / 본인 신청 목록 (신청자)</div>
+        </div>
+      </div>
+      <div class="api-item">
+        <div class="api-method post">POST</div>
+        <div>
+          <div class="api-path">/api/reservations</div>
+          <div class="api-desc">예약 신청 접수 (인트라넷 폼 제출 시 호출)</div>
+        </div>
+      </div>
+      <div class="api-item">
+        <div class="api-method post">POST</div>
+        <div>
+          <div class="api-path">/api/reservations/{id}/approve</div>
+          <div class="api-desc">예약 승인 + 통역사 자동/수동 배정 → meeting 생성</div>
+        </div>
+      </div>
+      <div class="api-item">
+        <div class="api-method post">POST</div>
+        <div>
+          <div class="api-path">/api/reservations/{id}/reject</div>
+          <div class="api-desc">예약 반려 — body: { reason: string }</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>회의 (확정 일정)</h3>
+    <div class="api-list">
+      <div class="api-item">
+        <div class="api-method get">GET</div>
+        <div>
+          <div class="api-path">/api/meetings?date=YYYY-MM-DD</div>
+          <div class="api-desc">특정 날짜 확정 회의 목록</div>
+        </div>
+      </div>
+      <div class="api-item">
+        <div class="api-method post">POST</div>
+        <div>
+          <div class="api-path">/api/meetings</div>
+          <div class="api-desc">관리자 직접 회의 추가</div>
+        </div>
+      </div>
+      <div class="api-item">
+        <div class="api-method patch">PATCH</div>
+        <div>
+          <div class="api-path">/api/meetings/{id}</div>
+          <div class="api-desc">회의 수정 (제목/소요시간/방향)</div>
+        </div>
+      </div>
+      <div class="api-item">
+        <div class="api-method delete">DELETE</div>
+        <div>
+          <div class="api-path">/api/meetings/{id}</div>
+          <div class="api-desc">회의 삭제</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>정례 그룹</h3>
+    <div class="api-list">
+      <div class="api-item">
+        <div class="api-method get">GET</div>
+        <div>
+          <div class="api-path">/api/regular-groups</div>
+          <div class="api-desc">정례 그룹 목록</div>
+        </div>
+      </div>
+      <div class="api-item">
+        <div class="api-method post">POST</div>
+        <div>
+          <div class="api-path">/api/regular-groups</div>
+          <div class="api-desc">정례 신청 제출 — 회차 날짜 서버에서 자동 생성</div>
+        </div>
+      </div>
+      <div class="api-item">
+        <div class="api-method post">POST</div>
+        <div>
+          <div class="api-path">/api/regular-groups/{id}/cancel-date</div>
+          <div class="api-desc">특정 회차 취소 — body: { date: YYYY-MM-DD }</div>
+        </div>
+      </div>
+      <div class="api-item">
+        <div class="api-method delete">DELETE</div>
+        <div>
+          <div class="api-path">/api/regular-groups/{id}</div>
+          <div class="api-desc">정례 전체 취소</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>수기 블록 & 내보내기</h3>
+    <div class="api-list">
+      <div class="api-item">
+        <div class="api-method get">GET</div>
+        <div>
+          <div class="api-path">/api/manual-blocks</div>
+          <div class="api-desc">수기 블록 목록</div>
+        </div>
+      </div>
+      <div class="api-item">
+        <div class="api-method post">POST</div>
+        <div>
+          <div class="api-path">/api/manual-blocks</div>
+          <div class="api-desc">수기 블록 추가</div>
+        </div>
+      </div>
+      <div class="api-item">
+        <div class="api-method delete">DELETE</div>
+        <div>
+          <div class="api-path">/api/manual-blocks/{id}</div>
+          <div class="api-desc">수기 블록 삭제</div>
+        </div>
+      </div>
+      <div class="api-item">
+        <div class="api-method get">GET</div>
+        <div>
+          <div class="api-path">/api/export/csv?from=&amp;to=&amp;interpId=&amp;type=</div>
+          <div class="api-desc">일정 CSV 내보내기 (한글 BOM 포함, 관리자 전용)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 12. 화면 구성 ═══ -->
+<div class="section" id="s12">
+  <div class="section-header">
+    <div class="section-num">12</div>
+    <div class="section-title">화면 구성 (탭별 기능 명세)</div>
+  </div>
+  <div class="section-body">
+    <table>
+      <thead>
+        <tr><th>탭</th><th>접근 가능 역할</th><th>주요 기능</th><th>비고</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>📅 일별 뷰</strong></td>
+          <td>전체</td>
+          <td>
+            날짜 선택 → 30분 슬롯 그리드<br>
+            신청자: 일반/긴급 2줄 행, 슬롯 클릭 → 신청<br>
+            관리자: 모든 통역사 행, 미승인 배지<br>
+            통역사: 본인 행만 (가능시간 배지)
+          </td>
+          <td>오늘 날짜 기본 선택</td>
+        </tr>
+        <tr>
+          <td><strong>📆 주별 뷰</strong></td>
+          <td>전체</td>
+          <td>
+            7일 테이블 그리드<br>
+            슬롯 칩에 회의명 + 배정 통역사 이름(관리자)<br>
+            미승인 건 🟡 노란 칩 (관리자)
+          </td>
+          <td>주 이동 네비게이션</td>
+        </tr>
+        <tr>
+          <td><strong>🗓️ 월별 뷰</strong></td>
+          <td>전체</td>
+          <td>
+            월 달력 표시<br>
+            날짜 클릭 → 해당 날짜 일별 뷰로 이동<br>
+            신청자: 불가예상 N건 표시
+          </td>
+          <td>월 이동 네비게이션</td>
+        </tr>
+        <tr>
+          <td><strong>🔄 정례 탭</strong></td>
+          <td>전체</td>
+          <td>
+            정례 신청 제출 (요일/주기/기간/Zoom 등)<br>
+            본인 정례 그룹 조회<br>
+            특정 회차 취소 (날짜 칩 클릭 — 관리자)
+          </td>
+          <td>홀수/짝수주, n번째주 선택 가능</td>
+        </tr>
+        <tr>
+          <td><strong>⚙️ 관리 탭</strong></td>
+          <td>관리자만</td>
+          <td>
+            통역사 목록 CRUD<br>
+            가능시간 등록 (🕐 버튼)<br>
+            수기 블록 추가/삭제<br>
+            CSV 내보내기 (기간/통역사/구분 필터)
+          </td>
+          <td>신청자·통역사에게 탭 자체 비노출</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>모달 목록</h3>
+    <table>
+      <thead><tr><th>모달 ID</th><th>용도</th><th>접근 역할</th></tr></thead>
+      <tbody>
+        <tr><td><code>reservationModal</code></td><td>예약 신청 (일반/긴급)</td><td>신청자</td></tr>
+        <tr><td><code>meetingModal</code></td><td>회의 추가/수정</td><td>관리자</td></tr>
+        <tr><td><code>pendingModal</code></td><td>미승인 신청 목록 (큐)</td><td>관리자</td></tr>
+        <tr><td><code>regularModal</code></td><td>정례 신청</td><td>신청자</td></tr>
+        <tr><td><code>interpModal</code></td><td>통역사 추가/수정</td><td>관리자</td></tr>
+        <tr><td><code>availModal</code></td><td>가능시간 등록</td><td>관리자, 통역사</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ 13. 구현 범위 ═══ -->
+<div class="section" id="s13">
+  <div class="section-header">
+    <div class="section-num">13</div>
+    <div class="section-title">구현 범위 및 미구현 항목</div>
+  </div>
+  <div class="section-body">
+    <h3>✅ 프로토타입 구현 완료</h3>
+    <ul>
+      <li>일별/주별/월별/정례/관리 탭 전체 렌더링</li>
+      <li>역할별 뷰 분기 (신청자/관리자/통역사)</li>
+      <li>슬롯 상태 판정 로직 (getSlotStatus) — 7단계</li>
+      <li>D+3 버퍼 계산 및 긴급 신청 잠금</li>
+      <li>자동 긴급 전환 (방향·형태 조합 기반)</li>
+      <li>자동 통역사 배정 (최소 누적 시간 우선)</li>
+      <li>수동 통역사 지정 (관리자 승인 모달 드롭다운)</li>
+      <li>회의 추가/수정/삭제</li>
+      <li>통역사 CRUD + 가능시간 등록</li>
+      <li>수기 블록 추가/삭제</li>
+      <li>정례 신청 (매주/격주/월n주 반복)</li>
+      <li>정례 특정 회차 취소</li>
+      <li>CSV 내보내기</li>
+      <li>토스트 알림 (4종: 성공/오류/경고/정보)</li>
+      <li>외부 신청서 URL 링크 (EXTERNAL_LINK 상수)</li>
+      <li>월별 뷰 날짜 클릭 → 일별 뷰 이동</li>
+    </ul>
+
+    <h3>❌ 미구현 (백엔드 연동 필요)</h3>
+    <ul>
+      <li>실제 인증/SSO 연동 (현재 드롭다운으로 역할 전환)</li>
+      <li>데이터 영속성 (새로고침 시 데이터 소실)</li>
+      <li>인트라넷 폼 연동 API (URL/파라미터 협의 필요)</li>
+      <li>실시간 알림 (관리자 미승인 건 — 폴링 또는 WebSocket)</li>
+      <li>공휴일 DB 테이블 (현재 하드코딩)</li>
+      <li>시스템 상수 관리 화면 (EXT_BEFORE, REST_BUFFER 등)</li>
+      <li>알림/이메일 발송 (승인/반려 결과)</li>
+      <li>사용자별 접근 제어 (현재 클라이언트 사이드만)</li>
+      <li>감사 로그 (Audit Log)</li>
+    </ul>
+
+    <h3>🔧 권장 개선 사항 (차기 스프린트)</h3>
+    <ul>
+      <li>공휴일 API 연동 (한국 공공데이터포털 holidays API)</li>
+      <li>통역사 배정 실패 시 대기열 처리 (waitlist)</li>
+      <li>신청자 이메일 알림 (승인/반려 시)</li>
+      <li>대시보드 뷰 추가 (관리자 — 월별 통계, 통역사별 배정 시간)</li>
+      <li>모바일 반응형 개선</li>
+      <li>연장 시간대 관리자 활성화 UI</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══ 14. 기술 스택 & 배포 ═══ -->
+<div class="section" id="s14">
+  <div class="section-header">
+    <div class="section-num">14</div>
+    <div class="section-title">기술 스택 & 배포 가이드</div>
+  </div>
+  <div class="section-body">
+    <h3>현재 프로토타입</h3>
+    <table>
+      <thead><tr><th>구분</th><th>기술</th><th>비고</th></tr></thead>
+      <tbody>
+        <tr><td>프론트엔드</td><td>Vanilla JS, CSS (단일 HTML)</td><td>외부 라이브러리 없음</td></tr>
+        <tr><td>데이터 저장</td><td>브라우저 메모리 (STATE 객체)</td><td>새로고침 시 소실</td></tr>
+        <tr><td>서빙</td><td>npx serve (정적 파일)</td><td>PM2로 프로세스 관리</td></tr>
+        <tr><td>빌드</td><td>없음 (빌드 불필요)</td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <h3>권장 실서비스 스택</h3>
+    <table>
+      <thead><tr><th>구분</th><th>권장 기술</th><th>대안</th></tr></thead>
+      <tbody>
+        <tr><td>프론트엔드</td><td>React + TypeScript</td><td>Vue 3, Svelte</td></tr>
+        <tr><td>백엔드</td><td>Hono (Cloudflare Workers) 또는 Node.js + Express</td><td>FastAPI, Spring Boot</td></tr>
+        <tr><td>DB</td><td>Cloudflare D1 (SQLite) 또는 PostgreSQL</td><td>MySQL, PlanetScale</td></tr>
+        <tr><td>인증</td><td>사내 SSO (SAML/OAuth2)</td><td>Clerk, Auth0</td></tr>
+        <tr><td>배포</td><td>Cloudflare Pages (프론트) + Workers (API)</td><td>Vercel + Railway</td></tr>
+        <tr><td>공휴일</td><td>한국 공공데이터포털 API</td><td>직접 DB 관리</td></tr>
+      </tbody>
+    </table>
+
+    <h3>프로토타입 실행</h3>
+    <div class="code-label">로컬 실행</div>
+    <pre><code># 방법 1: npx serve
+npx serve -s . -l 3000
+
+# 방법 2: PM2 (프로세스 데몬)
+pm2 start ecosystem.config.cjs
+pm2 logs webapp --nostream
+
+# 접속: http://localhost:3000</code></pre>
+
+    <div class="code-label">파일 구성</div>
+    <pre><code>webapp/
+├── index.html          ← 전체 애플리케이션 (3,500+ 줄)
+├── planning.html       ← 이 기획서
+├── ecosystem.config.cjs ← PM2 설정
+├── README.md
+└── JIRA_백로그_초안.md</code></pre>
+
+    <h3>코드 이전 시 주의 사항</h3>
+    <div class="info-box blue">
+      <p>현재 <code>index.html</code>의 <code>&lt;script&gt;</code> 블록 내 상수들(<code>EXT_BEFORE</code>, <code>REST_BUFFER</code>, <code>HIDE_EXT_SLOTS</code>, <code>KR_HOLIDAYS</code>, <code>JP_HOLIDAYS</code> 등)은 <strong>환경변수 또는 시스템 설정 테이블로 분리</strong>하는 것을 권장합니다. 특히 공휴일 목록은 연도별로 갱신이 필요하며 외부 API로 대체가 이상적입니다.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 푸터 ═══ -->
+<div style="text-align:center;padding:40px 0 20px;color:var(--text-sub);font-size:12px;">
+  <div style="margin-bottom:6px;">통역사 스케줄 관리 시스템 기획서 v1.0 — 2026-04-23</div>
+  <div>개발자 · PM 내부 참조용 / 무단 배포 금지</div>
+</div>
+
+</div><!-- /wrapper -->
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default',
+    themeVariables: {
+      primaryColor: '#dcfce7',
+      primaryTextColor: '#166534',
+      primaryBorderColor: '#86efac',
+      lineColor: '#6b7280',
+      secondaryColor: '#dbeafe',
+      tertiaryColor: '#fef3c7'
+    },
+    flowchart: { curve: 'basis', padding: 20 },
+    sequence: { actorMargin: 50 }
+  });
+</script>
+</body>
+</html>
