@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { serveStatic } from 'hono/cloudflare-workers'
+import { pages } from './pages'
 
 type Bindings = {
   OPENAI_API_KEY: string
@@ -12,9 +13,33 @@ const app = new Hono<{ Bindings: Bindings }>()
 // CORS
 app.use('/api/*', cors())
 
-// 정적 에셋 (이미지 등)
+// ── 정적 에셋 (이미지, CSS 등) ──
 app.use('/images/*', serveStatic({ root: './public' }))
 app.use('/static/*', serveStatic({ root: './public' }))
+
+// ── HTML 페이지 라우트 ──
+// 확장자 있는 버전 (.html) + 없는 버전 모두 처리
+const routeMap: Record<string, string> = {
+  '/':                pages.index,
+  '/index':           pages.index,
+  '/index.html':      pages.index,
+  '/brand-voice':     pages.brandVoice,
+  '/brand-voice.html':pages.brandVoice,
+  '/portfolio':       pages.portfolio,
+  '/portfolio.html':  pages.portfolio,
+  '/portfolio-v1':    pages.portfolioV1,
+  '/portfolio-v1.html': pages.portfolioV1,
+  '/threshold':       pages.threshold,
+  '/threshold.html':  pages.threshold,
+  '/flowchart':       pages.flowchart,
+  '/flowchart.html':  pages.flowchart,
+  '/planning':        pages.planning,
+  '/planning.html':   pages.planning,
+}
+
+for (const [path, html] of Object.entries(routeMap)) {
+  app.get(path, (c) => c.html(html))
+}
 
 // ── API: 브랜드 보이스 분석 ──
 app.post('/api/analyze', async (c) => {
@@ -36,7 +61,7 @@ app.post('/api/analyze', async (c) => {
   "keywords": ["핵심 단어/표현 5~7개"],
   "sentence_pattern": "문장 구조 특징 1~2문장",
   "avoid": ["쓰지 않는 표현 3~4개"],
-  "personality": "브랜드 인격을 한 문장으로",
+  "personality": "브랜드 인격을 한 문장으로 (예: '지적이고 절제된 목소리로 본질을 말한다')",
   "summary": "이 브랜드의 보이스를 2~3문장으로 요약"
 }`
 
@@ -48,7 +73,7 @@ app.post('/api/analyze', async (c) => {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'gpt-5-mini',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `다음 브랜드 텍스트 샘플을 분석해주세요:\n\n${samples}` }
@@ -131,7 +156,7 @@ app.post('/api/transform', async (c) => {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'gpt-5-mini',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -160,8 +185,5 @@ app.post('/api/transform', async (c) => {
     return c.json({ error: e.message }, 500)
   }
 })
-
-// ── 정적 HTML 파일 fallback ──
-app.use('/*', serveStatic({ root: './public' }))
 
 export default app
