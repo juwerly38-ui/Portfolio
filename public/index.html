@@ -79,6 +79,17 @@ html,body{
   max-width:820px;
 }
 
+/* 카드 D — AI 실험 (full-width) */
+.card-experiments{
+  grid-column:1 / -1;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.09);
+}
+.card-experiments::before{
+  background:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(192,132,252,.1) 0%, transparent 70%);
+}
+.card-experiments:hover{border-color:rgba(192,132,252,.3);}
+
 /* ── 개별 카드 ── */
 .card{
   text-decoration:none;
@@ -177,7 +188,30 @@ html,body{
 }
 .card-work .card-cta{color:rgba(0,195,0,.6);}
 .card-threshold .card-cta{color:rgba(167,139,250,.6);}
+.card-experiments .card-cta{color:rgba(192,132,252,.6);}
 .card:hover .card-cta{gap:10px;}
+
+.card-experiments .card-label{color:rgba(192,132,252,.7);}
+.card-experiments .tag{
+  background:rgba(192,132,252,.08);
+  color:rgba(192,132,252,.7);
+  border:1px solid rgba(192,132,252,.15);
+}
+
+/* 실험 카드 내부 프리뷰 썸네일 */
+.exp-thumbs{
+  display:flex;gap:8px;
+  margin-top:4px;
+}
+.exp-thumb{
+  width:60px;height:60px;
+  border-radius:7px;
+  object-fit:cover;
+  opacity:.65;
+  border:1px solid rgba(255,255,255,.08);
+  transition:opacity .2s;
+}
+.card-experiments:hover .exp-thumb{opacity:.9;}
 
 /* ── AI 관점 블록 ── */
 .prism-section{
@@ -264,8 +298,8 @@ html,body{
   <header class="header">
     <h1 class="name">Portfolio</h1>
     <p class="tagline">
-      <strong>AI를 프리즘으로 쓰는 방식</strong>에 대한 두 가지 기록 —<br>
-      업무에서의 탐구, 그리고 실험으로서의 탐구.
+      <strong>AI를 프리즘으로 쓰는 방식</strong>에 대한 세 가지 기록 —<br>
+      업무에서의 탐구, 언어로서의 탐구, 그리고 이미지·영상으로서의 탐구.
     </p>
   </header>
 
@@ -337,6 +371,35 @@ html,body{
       </div>
       <div class="card-cta">
         들어가기 <span>→</span>
+      </div>
+    </a>
+
+    <!-- 카드 D: AI Experiments — full-width -->
+    <a class="card card-experiments" href="./ai-experiments.html">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:220px;">
+          <div class="card-label">AI Experiments</div>
+          <div class="card-title">상상의 세계관 — Midjourney × Hix AI</div>
+          <div class="card-desc">
+            단순 생성이 아닌 <strong>파라미터 실험, 도구 전환, 한계 인식의 과정</strong>.<br>
+            미드저니 이미지 탐구부터 Kling 3.0 영상화, 서울 지하철 백룸 프로젝트까지.
+          </div>
+        </div>
+        <div class="exp-thumbs" style="align-self:center;">
+          <img class="exp-thumb" src="https://www.genspark.ai/api/files/s/8Z0XjwXk" alt="android">
+          <img class="exp-thumb" src="https://www.genspark.ai/api/files/s/psxjJdgs" alt="whale">
+          <img class="exp-thumb" src="https://www.genspark.ai/api/files/s/QcSP0uz0" alt="wolf">
+        </div>
+      </div>
+      <div class="card-tags">
+        <span class="tag">Midjourney</span>
+        <span class="tag">Kling 3.0</span>
+        <span class="tag">Cinema Studio</span>
+        <span class="tag">이미지→영상</span>
+        <span class="tag">리미널 스페이스</span>
+      </div>
+      <div class="card-cta">
+        탐구 과정 보기 <span>→</span>
       </div>
     </a>
 

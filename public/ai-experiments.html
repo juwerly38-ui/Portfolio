@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Experiments — 상상의 세계관</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans-serif;
+  background:#07070e;
+  color:#fff;
+  overflow-x:hidden;
+}
+
+/* ── 배경 그라디언트 ── */
+.bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 80vw 50vh at 15% 20%, rgba(120,40,200,.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60vw 60vh at 85% 70%, rgba(0,140,255,.05) 0%, transparent 60%),
+    radial-gradient(ellipse 50vw 40vh at 50% 50%, rgba(200,80,0,.04) 0%, transparent 60%);
+}
+
+/* ── 레이아웃 ── */
+.page{
+  position:relative;z-index:1;
+  max-width:900px;
+  margin:0 auto;
+  padding:72px 32px 120px;
+}
+
+/* ── 네비 ── */
+.nav{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:72px;
+}
+.nav-back{
+  display:flex;align-items:center;gap:6px;
+  color:rgba(255,255,255,.35);
+  text-decoration:none;
+  font-size:12px;font-weight:600;letter-spacing:.5px;
+  text-transform:uppercase;
+  transition:color .2s;
+}
+.nav-back:hover{color:rgba(255,255,255,.7);}
+.nav-sep{color:rgba(255,255,255,.15);font-size:12px;}
+.nav-current{color:rgba(255,255,255,.4);font-size:12px;}
+
+/* ── 히어로 ── */
+.hero{
+  margin-bottom:96px;
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;
+  color:rgba(180,120,255,.7);
+  margin-bottom:20px;
+}
+.hero-eyebrow::before{
+  content:'';display:block;width:24px;height:1px;
+  background:rgba(180,120,255,.5);
+}
+.hero-title{
+  font-size:clamp(32px,5vw,56px);
+  font-weight:900;letter-spacing:-2px;line-height:1.05;
+  color:#fff;
+  margin-bottom:24px;
+}
+.hero-title .accent{
+  background:linear-gradient(135deg,#c084fc,#818cf8,#38bdf8);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero-subtitle{
+  font-size:clamp(14px,1.6vw,16px);
+  color:rgba(255,255,255,.4);
+  line-height:1.85;
+  max-width:600px;
+  margin-bottom:32px;
+}
+.hero-subtitle strong{color:rgba(255,255,255,.75);}
+
+.hero-tools{
+  display:flex;flex-wrap:wrap;gap:8px;
+}
+.tool-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 14px;
+  border-radius:99px;
+  font-size:11px;font-weight:700;letter-spacing:.3px;
+}
+.tool-mj{background:rgba(255,160,50,.08);border:1px solid rgba(255,160,50,.2);color:rgba(255,160,50,.8);}
+.tool-hix{background:rgba(80,180,255,.08);border:1px solid rgba(80,180,255,.2);color:rgba(80,180,255,.8);}
+.tool-cinema{background:rgba(220,80,80,.08);border:1px solid rgba(220,80,80,.2);color:rgba(220,80,80,.8);}
+
+/* ── 섹션 공통 ── */
+.section{
+  margin-bottom:100px;
+}
+.section-header{
+  margin-bottom:40px;
+  padding-bottom:24px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.section-num{
+  font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;
+  color:rgba(255,255,255,.2);
+  margin-bottom:10px;
+}
+.section-title{
+  font-size:clamp(22px,3vw,30px);
+  font-weight:900;letter-spacing:-1px;
+  color:#fff;
+  margin-bottom:12px;
+  line-height:1.2;
+}
+.section-desc{
+  font-size:14px;
+  color:rgba(255,255,255,.45);
+  line-height:1.85;
+  max-width:640px;
+}
+.section-desc strong{color:rgba(255,255,255,.75);}
+
+/* ── 탐구 과정 (타임라인형) ── */
+.process-log{
+  margin:32px 0;
+  display:flex;flex-direction:column;gap:2px;
+}
+.log-item{
+  display:grid;
+  grid-template-columns:20px 1fr;
+  gap:16px;
+  align-items:start;
+  padding:14px 0;
+  border-bottom:1px solid rgba(255,255,255,.04);
+}
+.log-item:last-child{border-bottom:none;}
+.log-dot{
+  width:6px;height:6px;border-radius:50%;
+  margin-top:6px;
+  flex-shrink:0;
+}
+.log-dot.discovery{background:rgba(255,160,50,.7);}
+.log-dot.problem{background:rgba(220,80,80,.7);}
+.log-dot.insight{background:rgba(80,220,120,.7);}
+.log-dot.pivot{background:rgba(130,100,255,.7);}
+.log-body{}
+.log-tag{
+  font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+  margin-bottom:4px;
+  opacity:.6;
+}
+.log-dot.discovery ~ .log-body .log-tag{color:#ffa032;}
+.log-dot.problem ~ .log-body .log-tag{color:#dc5050;}
+.log-dot.insight ~ .log-body .log-tag{color:#50dc78;}
+.log-dot.pivot ~ .log-body .log-tag{color:#8264ff;}
+.log-text{
+  font-size:13px;
+  color:rgba(255,255,255,.55);
+  line-height:1.7;
+}
+.log-text strong{color:rgba(255,255,255,.8);}
+
+/* ── 이미지 갤러리 ── */
+.gallery{
+  margin:32px 0;
+}
+.gallery-label{
+  font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:rgba(255,255,255,.2);
+  margin-bottom:12px;
+}
+.img-grid{
+  display:grid;
+  gap:8px;
+}
+.img-grid.cols-3{grid-template-columns:repeat(3,1fr);}
+.img-grid.cols-2{grid-template-columns:repeat(2,1fr);}
+.img-grid.cols-1{grid-template-columns:1fr;}
+
+.img-frame{
+  position:relative;
+  overflow:hidden;
+  border-radius:10px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.06);
+  aspect-ratio:1/1;
+  cursor:pointer;
+}
+.img-frame.wide{aspect-ratio:4/3;}
+.img-frame.tall{aspect-ratio:3/4;}
+
+.img-frame img{
+  width:100%;height:100%;
+  object-fit:cover;
+  display:block;
+  transition:transform .4s ease, opacity .3s;
+  opacity:.85;
+}
+.img-frame:hover img{transform:scale(1.04);opacity:1;}
+
+.img-caption{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:10px 12px 8px;
+  background:linear-gradient(0deg,rgba(0,0,0,.8) 0%,transparent 100%);
+  font-size:10px;
+  color:rgba(255,255,255,.5);
+  line-height:1.4;
+  opacity:0;
+  transition:opacity .25s;
+}
+.img-frame:hover .img-caption{opacity:1;}
+
+/* ── 베스트컷 ── */
+.bestcut{
+  margin:40px 0;
+  background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;
+  padding:28px;
+}
+.bestcut-label{
+  font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+  color:rgba(255,200,60,.6);
+  margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;
+}
+.bestcut-label::before{
+  content:'★';font-size:10px;color:rgba(255,200,60,.5);
+}
+.bestcut-img{
+  width:100%;
+  border-radius:10px;
+  display:block;
+  max-height:480px;
+  object-fit:cover;
+}
+
+/* ── 파라미터 박스 ── */
+.param-box{
+  margin:24px 0;
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;
+  padding:20px 22px;
+}
+.param-label{
+  font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+  color:rgba(255,255,255,.2);
+  margin-bottom:12px;
+}
+.param-list{
+  display:flex;flex-wrap:wrap;gap:6px;
+}
+.param{
+  font-size:11px;font-weight:600;
+  padding:4px 10px;border-radius:6px;
+  font-family:'SF Mono',Consolas,monospace;
+}
+.param.mj{background:rgba(255,160,50,.08);border:1px solid rgba(255,160,50,.15);color:rgba(255,160,50,.8);}
+.param.result{background:rgba(80,220,120,.08);border:1px solid rgba(80,220,120,.15);color:rgba(80,220,120,.8);}
+
+/* ── 영상 섹션 ── */
+.video-grid{
+  display:grid;
+  gap:16px;
+  margin:32px 0;
+}
+.video-grid.cols-2{grid-template-columns:repeat(2,1fr);}
+.video-grid.cols-1{grid-template-columns:1fr;}
+
+.video-card{
+  background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:14px;
+  overflow:hidden;
+}
+.video-wrap{
+  position:relative;
+  background:#000;
+}
+.video-wrap video{
+  width:100%;
+  display:block;
+  max-height:320px;
+  object-fit:cover;
+}
+.video-meta{
+  padding:14px 16px;
+}
+.video-title{
+  font-size:13px;font-weight:700;
+  color:rgba(255,255,255,.8);
+  margin-bottom:4px;
+}
+.video-desc{
+  font-size:11px;
+  color:rgba(255,255,255,.35);
+  line-height:1.6;
+}
+.video-badge{
+  display:inline-block;
+  font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;
+  padding:3px 8px;border-radius:4px;
+  margin-top:6px;
+}
+.video-badge.v1{background:rgba(255,255,255,.05);color:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.08);}
+.video-badge.v2{background:rgba(80,220,120,.08);color:rgba(80,220,120,.7);border:1px solid rgba(80,220,120,.15);}
+
+/* ── 비교 화살표 ── */
+.compare-arrow{
+  display:flex;align-items:center;justify-content:center;
+  padding:8px 0;
+  font-size:18px;
+  color:rgba(255,255,255,.15);
+}
+
+/* ── 서울 지하철 백룸 특수 스타일 ── */
+.backroom-hero{
+  position:relative;
+  border-radius:16px;
+  overflow:hidden;
+  margin:32px 0;
+}
+.backroom-video-full{
+  width:100%;
+  display:block;
+}
+.backroom-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(0deg, rgba(0,0,0,.7) 0%, transparent 50%);
+  pointer-events:none;
+}
+.backroom-caption{
+  position:absolute;bottom:20px;left:24px;right:24px;
+}
+.backroom-caption-text{
+  font-size:13px;
+  color:rgba(255,255,255,.6);
+  line-height:1.7;
+}
+
+.ref-images{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin:20px 0;
+}
+.ref-img{
+  border-radius:8px;
+  overflow:hidden;
+  aspect-ratio:4/3;
+  border:1px solid rgba(255,255,255,.06);
+}
+.ref-img img{
+  width:100%;height:100%;
+  object-fit:cover;
+  opacity:.75;
+  transition:opacity .25s;
+}
+.ref-img:hover img{opacity:1;}
+.ref-img.selected{border-color:rgba(80,220,120,.4);}
+.ref-img.selected img{opacity:.9;}
+
+/* ── "진행 중" 배지 ── */
+.wip-banner{
+  display:flex;align-items:flex-start;gap:14px;
+  background:rgba(255,160,30,.05);
+  border:1px solid rgba(255,160,30,.15);
+  border-radius:12px;
+  padding:18px 20px;
+  margin:28px 0;
+}
+.wip-icon{font-size:18px;margin-top:1px;flex-shrink:0;}
+.wip-text{font-size:13px;color:rgba(255,255,255,.5);line-height:1.75;}
+.wip-text strong{color:rgba(255,200,60,.8);}
+
+/* ── 구분선 ── */
+.section-divider{
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.06) 30%,rgba(255,255,255,.06) 70%,transparent);
+  margin:80px 0;
+}
+
+/* ── 하단 네비 ── */
+.bottom-nav{
+  display:flex;justify-content:space-between;align-items:center;
+  padding-top:48px;
+  border-top:1px solid rgba(255,255,255,.06);
+  margin-top:80px;
+}
+.bottom-nav-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  text-decoration:none;
+  color:rgba(255,255,255,.35);
+  font-size:12px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;
+  transition:color .2s;
+}
+.bottom-nav-btn:hover{color:rgba(255,255,255,.7);}
+
+/* ── 라이트박스 ── */
+.lightbox{
+  display:none;
+  position:fixed;inset:0;z-index:100;
+  background:rgba(0,0,0,.92);
+  justify-content:center;align-items:center;
+  cursor:pointer;
+}
+.lightbox.open{display:flex;}
+.lightbox-img{
+  max-width:90vw;max-height:90vh;
+  border-radius:8px;
+  box-shadow:0 0 80px rgba(0,0,0,.8);
+}
+.lightbox-close{
+  position:fixed;top:24px;right:28px;
+  font-size:28px;color:rgba(255,255,255,.4);
+  cursor:pointer;transition:color .2s;
+}
+.lightbox-close:hover{color:#fff;}
+
+/* ── 반응형 ── */
+@media(max-width:600px){
+  .page{padding:48px 20px 80px;}
+  .img-grid.cols-3{grid-template-columns:repeat(2,1fr);}
+  .video-grid.cols-2{grid-template-columns:1fr;}
+  .ref-images{grid-template-columns:repeat(2,1fr);}
+  .hero-title{letter-spacing:-1.5px;}
+  .bottom-nav{flex-direction:column;gap:16px;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<!-- 라이트박스 -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <span class="lightbox-close">×</span>
+  <img class="lightbox-img" id="lightboxImg" src="" alt="">
+</div>
+
+<main class="page">
+
+  <!-- 네비 -->
+  <nav class="nav">
+    <a class="nav-back" href="./index.html">← Back</a>
+    <span class="nav-sep">/</span>
+    <span class="nav-current">AI Experiments</span>
+  </nav>
+
+  <!-- 히어로 -->
+  <header class="hero">
+    <div class="hero-eyebrow">AI Experiments</div>
+    <h1 class="hero-title">
+      AI로 만든 것이 아니라<br>
+      <span class="accent">AI와 함께 탐구한 과정</span>
+    </h1>
+    <p class="hero-subtitle">
+      미드저니(Midjourney)와 힉스AI(Kling · Cinema Studio)를 사용해 진행한 세 가지 실험입니다.<br>
+      <strong>단순히 이미지와 영상을 생성한 기록이 아닙니다.</strong> 도구의 한계를 만나고, 파라미터를 조정하고,
+      의도치 않은 결과에서 새로운 방향을 발견하는 — 과정 자체가 이 포트폴리오의 내용입니다.
+    </p>
+    <div class="hero-tools">
+      <span class="tool-badge tool-mj">✦ Midjourney</span>
+      <span class="tool-badge tool-hix">▶ Hix AI — Kling 3.0</span>
+      <span class="tool-badge tool-cinema">◈ Cinema Studio</span>
+    </div>
+  </header>
+
+
+  <!-- ════════════════════════════════════════
+       SECTION 1 : 미드저니 — 상상의 세계관
+  ════════════════════════════════════════ -->
+  <section class="section" id="sec-midjourney">
+    <div class="section-header">
+      <div class="section-num">Section 01 · Midjourney</div>
+      <h2 class="section-title">상상의 세계관을<br>구체화하는 실험</h2>
+      <p class="section-desc">
+        "멋진 이미지를 뽑아내는 것"이 목표가 아니었습니다.
+        <strong>AI가 어떤 방식으로 세계관을 해석하는지, 그리고 내가 원하는 결과를 얻으려면 어떻게 질문해야 하는지</strong>를 이해하는 것이 목적이었습니다.
+        사이버펑크 안드로이드 → 생물발광 고래 → 늑대와 열기구로 이어지는 탐구는,
+        매 시도마다 파라미터를 바꾸고 결과를 해석하며 다음 질문을 만드는 방식으로 진행됐습니다.
+      </p>
+    </div>
+
+    <!-- 탐구 과정 로그 -->
+    <div class="process-log">
+      <div class="log-item">
+        <div class="log-dot discovery"></div>
+        <div class="log-body">
+          <div class="log-tag">발견</div>
+          <div class="log-text">처음 복잡한 프롬프트("사이버펑크 안드로이드, 디테일한 회로 패턴, 야간 도시, 빗속, 네온사인 반사…")를 넣었을 때 원하는 결과가 나오지 않았다. <strong>너무 많은 요소를 한 번에 담으려 했기 때문</strong>이라는 걸 깨달았다.</div>
+        </div>
+      </div>
+      <div class="log-item">
+        <div class="log-dot insight"></div>
+        <div class="log-body">
+          <div class="log-tag">인사이트</div>
+          <div class="log-text"><strong>분해 전략</strong>: 단순한 버전을 먼저 확립하고, 이후 레이어를 추가하는 방식으로 전환. <code style="font-size:11px;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:3px;">--stylize</code>, <code style="font-size:11px;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:3px;">--weird</code>, <code style="font-size:11px;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:3px;">--chaos</code> 등 파라미터를 하나씩 테스트하며 각 값의 의미를 체감으로 이해했다.</div>
+        </div>
+      </div>
+      <div class="log-item">
+        <div class="log-dot problem"></div>
+        <div class="log-body">
+          <div class="log-tag">한계</div>
+          <div class="log-text">Edit(인페인팅)으로 특정 요소만 교체하려 했을 때 복잡한 원본에서는 효과가 제한적이었다. 또한 <strong>Omni Reference로 완전히 동일한 캐릭터 일관성을 구현하는 것도 불가능</strong>했다 — AI가 레퍼런스를 해석하는 방식에는 한계가 있다.</div>
+        </div>
+      </div>
+      <div class="log-item">
+        <div class="log-dot pivot"></div>
+        <div class="log-body">
+          <div class="log-tag">전환</div>
+          <div class="log-text">의도하지 않은 <strong>실사→애니 스타일 드리프트</strong>가 발생했을 때, 처음엔 수정하려 했다. 그런데 오히려 더 좋은 결과였다. AI의 "오해"를 새로운 방향으로 받아들이는 태도 자체가 탐구의 방법이 됐다.</div>
+        </div>
+      </div>
+      <div class="log-item">
+        <div class="log-dot problem"></div>
+        <div class="log-body">
+          <div class="log-tag">한계</div>
+          <div class="log-text">거대 로봇 상반신을 Edit으로 추가하려 했을 때 미드저니가 계속 R2D2 형태로 반복해석했다. <strong>AI가 가진 패턴 편향</strong>을 확인하고, 강제로 덮어씌우는 대신 세계관을 확장하는 방향으로 전환했다.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 파라미터 정보 -->
+    <div class="param-box">
+      <div class="param-label">주요 실험 파라미터</div>
+      <div class="param-list">
+        <span class="param mj">--stylize 0~1000</span>
+        <span class="param mj">--weird 0~3000</span>
+        <span class="param mj">--chaos 0~100</span>
+        <span class="param mj">--ar 2:3 / 3:2 / 16:9</span>
+        <span class="param mj">--v 6.1</span>
+        <span class="param mj">--cw (character weight)</span>
+        <span class="param mj">Omni Reference</span>
+        <span class="param mj">Edit (Inpainting)</span>
+        <span class="param result">Generate → Upscale → Variation</span>
+      </div>
+    </div>
+
+    <!-- 시리즈별 이미지 갤러리 -->
+    <div class="gallery">
+      <div class="gallery-label">Series 1–3 · Cyborg Android — 파라미터 탐구 과정</div>
+      <div class="img-grid cols-3">
+        <!-- Series 1 -->
+        <div class="img-frame" onclick="openLightbox('https://www.genspark.ai/api/files/s/Mnr7371W')">
+          <img src="https://www.genspark.ai/api/files/s/Mnr7371W" alt="Android Series 1-1" loading="lazy" onerror="this.parentElement.style.display='none'">
+          <div class="img-caption">Series 1 · 초기 실사 버전</div>
+        </div>
+        <div class="img-frame" onclick="openLightbox('https://www.genspark.ai/api/files/s/UVRcRMeI')">
+          <img src="https://www.genspark.ai/api/files/s/UVRcRMeI" alt="Android Series 1-2" loading="lazy" onerror="this.parentElement.style.display='none'">
+          <div class="img-caption">Series 1 · --stylize 실험</div>
+        </div>
+        <div class="img-frame" onclick="openLightbox('https://www.genspark.ai/api/files/s/jgJwE13d')">
+          <img src="https://www.genspark.ai/api/files/s/jgJwE13d" alt="Android Series 1-3" loading="lazy" onerror="this.parentElement.style.display='none'">
+          <div class="img-caption">Series 1 · Upscale 후</div>
+        </div>
+        <!-- Series 2 -->
+        <div class="img-frame" onclick="openLightbox('https://www.genspark.ai/api/files/s/6VU7lrX7')">
+          <img src="https://www.genspark.ai/api/files/s/6VU7lrX7" alt="Android Series 2-1" loading="lazy" onerror="this.parentElement.style.display='none'">
+          <div class="img-caption">Series 2 · 간소화 시도</div>
+        </div>
+        <div class="img-frame" onclick="openLightbox('https://www.genspark.ai/api/files/s/RE7ROZrk')">
+          <img src="https://www.genspark.ai/api/files/s/RE7ROZrk" alt="Android Series 2-2" loading="lazy" onerror="this.parentElement.style.display='none'">
+          <div class="img-caption">Series 2 · Omni Reference</div>
+        </div>
+        <div class="img-frame" onclick="openLightbox('https://www.genspark.ai/api/files/s/AaXKu54U')">
+          <img src="https://www.genspark.ai/api/files/s/AaXKu54U" alt="Android Series 2-3" loading="lazy" onerror="this.parentElement.style.display='none'">
+          <div class="img-caption">Series 2 · 실사→애니 드리프트</div>
+        </div>
+        <!-- Series 3 -->
+        <div class="img-frame" onclick="openLightbox('https://www.genspark.ai/api/files/s/NjbLRKZU')">
+          <img src="https://www.genspark.ai/api/files/s/NjbLRKZU" alt="Android Series 3-1" loading="lazy" onerror="this.parentElement.style.display='none'">
+          <div class="img-caption">Series 3 · 애니 스타일 완성</div>
+        </div>
+        <div class="img-frame" onclick="openLightbox('https://www.genspark.ai/api/files/s/1vJG2hBl')">
+          <img src="https://www.genspark.ai/api/files/s/1vJG2hBl" alt="Android Series 3-2" loading="lazy" onerror="this.parentElement.style.display='none'">
+          <div class="img-caption">Series 3 · Mech Edit 시도</div>
+        </div>
+        <div class="img-frame" onclick="openLightbox('https://www.genspark.ai/api/files/s/LF2VVKGl')">
+          <img src="https://www.genspark.ai/api/files/s/LF2VVKGl" alt="Android Series 3-3" loading="lazy" onerror="this.parentElement.style.display='none'">
+          <div class="img-caption">Series 3 · 세계관 확장</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 베스트컷 Android -->
+    <div class="bestcut">
+      <div class="bestcut-label">Best Cut · Android</div>
+      <img class="bestcut-img" src="https://www.genspark.ai/api/files/s/8Z0XjwXk" alt="Best Cut Android" onclick="openLightbox('https://www.genspark.ai/api/files/s/8Z0XjwXk')" style="cursor:pointer;">
+    </div>
+
+    <!-- Series 4: 고래 -->
+    <div class="gallery" style="margin-top:40px;">
+      <div class="gallery-label">Series 4 · Bioluminescent Whale</div>
+      <div class="img-grid cols-3">
+        <div class="img-frame" onclick="openLightbox('https://www.genspark.ai/api/files/s/RXhgP3SP')">
+          <img src="https://www.genspark.ai/api/files/s/RXhgP3SP" alt="Whale 1" loading="lazy" onerror="this.parentElement.style.display='none'">
+          <div class="img-caption">Whale · 첫 생성</div>
+        </div>
+        <div class="img-frame" onclick="openLightbox('https://www.genspark.ai/api/files/s/pzqQgh40')">
+          <img src="https://www.genspark.ai/api/files/s/pzqQgh40" alt="Whale 2" loading="lazy" onerror="this.parentElement.style.display='none'">
+          <div class="img-caption">Whale · Variation</div>
+        </div>
+        <div class="img-frame" onclick="openLightbox('https://www.genspark.ai/api/files/s/cg8lXuhC')">
+          <img src="https://www.genspark.ai/api/files/s/cg8lXuhC" alt="Whale 3" loading="lazy" onerror="this.parentElement.style.display='none'">
+          <div class="img-caption">Whale · 최종 선택</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bestcut">
+      <div class="bestcut-label">Best Cut · Whale</div>
+      <img class="bestcut-img" src="https://www.genspark.ai/api/files/s/psxjJdgs" alt="Best Cut Whale" onclick="openLightbox('https://www.genspark.ai/api/files/s/psxjJdgs')" style="cursor:pointer;aspect-ratio:auto;">
+    </div>
+
+    <!-- Series 5: 늑대 -->
+    <div class="gallery" style="margin-top:40px;">
+      <div class="gallery-label">Series 5 · Hot Air Balloon + Giant Wolf — 요소 과부하 → 점진적 축소</div>
+      <div class="process-log" style="margin-bottom:16px;">
+        <div class="log-item">
+          <div class="log-dot problem"></div>
+          <div class="log-body">
+            <div class="log-tag">과부하</div>
+            <div class="log-text">열기구 + 사람들 + 늑대를 동시에 요청 → AI가 요소들의 균형을 잡지 못하고 산만한 구도를 생성</div>
+          </div>
+        </div>
+        <div class="log-item">
+          <div class="log-dot insight"></div>
+          <div class="log-body">
+            <div class="log-tag">타협</div>
+            <div class="log-text"><strong>점진적 프롬프트 축소</strong>: 요소를 하나씩 제거하며 핵심 긴장감(늑대 vs 열기구)에 집중 → 원하는 구도 도달</div>
+          </div>
+        </div>
+      </div>
+      <div class="img-grid cols-3">
+        <div class="img-frame" onclick="openLightbox('https://www.genspark.ai/api/files/s/KHBn1VFL')">
+          <img src="https://www.genspark.ai/api/files/s/KHBn1VFL" alt="Wolf 1" loading="lazy" onerror="this.parentElement.style.display='none'">
+          <div class="img-caption">Wolf · 초기 과부하 버전</div>
+        </div>
+        <div class="img-frame" onclick="openLightbox('https://www.genspark.ai/api/files/s/VpdwpPU9')">
+          <img src="https://www.genspark.ai/api/files/s/VpdwpPU9" alt="Wolf 2" loading="lazy" onerror="this.parentElement.style.display='none'">
+          <div class="img-caption">Wolf · 요소 축소 후</div>
+        </div>
+        <div class="img-frame" onclick="openLightbox('https://www.genspark.ai/api/files/s/JCrJSjlX')">
+          <img src="https://www.genspark.ai/api/files/s/JCrJSjlX" alt="Wolf 3" loading="lazy" onerror="this.parentElement.style.display='none'">
+          <div class="img-caption">Wolf · 구도 확정</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bestcut">
+      <div class="bestcut-label">Best Cut · Wolf</div>
+      <img class="bestcut-img" src="https://www.genspark.ai/api/files/s/QcSP0uz0" alt="Best Cut Wolf" onclick="openLightbox('https://www.genspark.ai/api/files/s/QcSP0uz0')" style="cursor:pointer;aspect-ratio:auto;">
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ════════════════════════════════════════
+       SECTION 2 : 힉스AI — 이미지에 움직임을
+  ════════════════════════════════════════ -->
+  <section class="section" id="sec-hixai">
+    <div class="section-header">
+      <div class="section-num">Section 02 · Hix AI — Kling 3.0</div>
+      <h2 class="section-title">이미지에<br>움직임을 부여하다</h2>
+      <p class="section-desc">
+        미드저니로 완성한 이미지들을 힉스AI(Kling 3.0 모델)로 영상화했습니다.
+        <strong>이미지 생성 프롬프트와 영상 변환 프롬프트는 전혀 다른 언어 체계</strong>입니다.
+        이미지에선 "무엇이 있는가"를 묘사하지만, 영상에선 "무엇이 어떻게 움직이는가"를 명시해야 합니다.
+        ver.1과 ver.2의 차이는 그 언어 체계를 이해해 가는 과정을 보여줍니다.
+      </p>
+    </div>
+
+    <!-- Android 비교 -->
+    <div class="gallery-label" style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:12px;">Android — 재생성으로 다른 결과 확인</div>
+    <div class="video-grid cols-2">
+      <div class="video-card">
+        <div class="video-wrap">
+          <video controls preload="metadata" poster="">
+            <source src="https://www.genspark.ai/api/files/s/hscHyo3u" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-meta">
+          <div class="video-title">Android Ver. 1</div>
+          <div class="video-desc">동작 미명시 · 5초 · 재생성만으로 결과 차이 확인</div>
+          <span class="video-badge v1">Ver. 1</span>
+        </div>
+      </div>
+      <div class="video-card">
+        <div class="video-wrap">
+          <video controls preload="metadata">
+            <source src="https://www.genspark.ai/api/files/s/TYjRapFB" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-meta">
+          <div class="video-title">Android Ver. 2</div>
+          <div class="video-desc">동일 이미지 · 재생성 · 8초 · 카메라 워크 변화</div>
+          <span class="video-badge v2">Ver. 2</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Whale 비교 -->
+    <div class="gallery-label" style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.2);margin:32px 0 12px;">Whale — 동작 명시 전후 비교</div>
+    <div class="process-log" style="margin-bottom:16px;">
+      <div class="log-item">
+        <div class="log-dot problem"></div>
+        <div class="log-body">
+          <div class="log-tag">ver.1</div>
+          <div class="log-text">지느러미 움직임 미명시 → AI가 자체적으로 해석 → 기대와 다른 동작 패턴</div>
+        </div>
+      </div>
+      <div class="log-item">
+        <div class="log-dot insight"></div>
+        <div class="log-body">
+          <div class="log-tag">ver.2 개선</div>
+          <div class="log-text"><strong>"지느러미를 천천히 움직이며 유영하는"</strong> 동작을 명시적으로 서술 → 의도한 움직임 구현. 이미지→영상에서는 동작 서술이 핵심임을 확인.</div>
+        </div>
+      </div>
+    </div>
+    <div class="video-grid cols-2">
+      <div class="video-card">
+        <div class="video-wrap">
+          <video controls preload="metadata">
+            <source src="https://www.genspark.ai/api/files/s/HpGWLb7U" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-meta">
+          <div class="video-title">Whale Ver. 1</div>
+          <div class="video-desc">동작 미명시 · 8초</div>
+          <span class="video-badge v1">Ver. 1</span>
+        </div>
+      </div>
+      <div class="video-card">
+        <div class="video-wrap">
+          <video controls preload="metadata">
+            <source src="https://www.genspark.ai/api/files/s/kyiYD7iE" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-meta">
+          <div class="video-title">Whale Ver. 2</div>
+          <div class="video-desc">지느러미 동작 명시 · 6초 · 1080p</div>
+          <span class="video-badge v2">Ver. 2</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wolf -->
+    <div class="gallery-label" style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.2);margin:32px 0 12px;">Wolf — 1080p 영상화</div>
+    <div class="video-grid cols-1">
+      <div class="video-card">
+        <div class="video-wrap">
+          <video controls preload="metadata" style="max-height:400px;">
+            <source src="https://www.genspark.ai/api/files/s/RTKCbPHB" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-meta">
+          <div class="video-title">Giant Wolf</div>
+          <div class="video-desc">Kling 3.0 · 6초 · 1080p · 열기구 + 늑대 세계관</div>
+          <span class="video-badge v2">1080p</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ════════════════════════════════════════
+       SECTION 3 : 서울 지하철 백룸
+  ════════════════════════════════════════ -->
+  <section class="section" id="sec-backrooms">
+    <div class="section-header">
+      <div class="section-num">Section 03 · Cinema Studio — 진행 중인 프로젝트</div>
+      <h2 class="section-title">서울 지하철 백룸 —<br>리미널 스페이스 실험</h2>
+      <p class="section-desc">
+        NanoBanana로 시작해 미드저니로 전환한 이유도 있었고, Cinema Studio라는 새로운 도구를 탐색하는 과정이기도 했습니다.
+        <strong>실제 서울 지하철 사진을 레퍼런스로 투입해 현실과 허구 사이의 불안감을 조성하는 것</strong>이 목표였습니다.
+        텍스트 왜곡("발빠짐 주의")이 의도치 않게 발생했지만, 그것이 오히려 리미널 스페이스의 불안감을 증폭시키는 요소로 작용했습니다.
+      </p>
+    </div>
+
+    <!-- 레퍼런스 이미지 선택 과정 -->
+    <div class="gallery-label" style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:8px;">배경 레퍼런스 선택 과정</div>
+    <p style="font-size:12px;color:rgba(255,255,255,.3);margin-bottom:12px;line-height:1.7;">
+      실제 지하철 사진 5장 중, <strong style="color:rgba(80,220,120,.7);">초록 테두리</strong>: 최종 선택 — 실제 인물이 자연스럽게 녹아들면서도 불안감을 주는 공간
+    </p>
+    <div class="ref-images">
+      <div class="ref-img" style="opacity:.4;">
+        <img src="https://www.genspark.ai/api/files/s/xdRfzoYY" alt="ref 1 - 불채택">
+      </div>
+      <div class="ref-img" style="opacity:.4;">
+        <img src="https://www.genspark.ai/api/files/s/iJq3amox" alt="ref 2 - 불채택">
+      </div>
+      <div class="ref-img selected">
+        <img src="https://www.genspark.ai/api/files/s/xdRfzoYY" alt="ref 3 - 선택">
+      </div>
+      <div class="ref-img selected">
+        <img src="https://www.genspark.ai/api/files/s/iJq3amox" alt="ref 4 - 선택">
+      </div>
+      <div class="ref-img selected">
+        <img src="https://www.genspark.ai/api/files/s/Pxs9QYfZ" alt="ref 5 - 선택">
+      </div>
+    </div>
+
+    <!-- 탐구 과정 -->
+    <div class="process-log">
+      <div class="log-item">
+        <div class="log-dot discovery"></div>
+        <div class="log-body">
+          <div class="log-tag">도구 전환</div>
+          <div class="log-text">NanoBanana(빠른 탐색)에서 Midjourney(심미적 완성도)로 전환한 뒤, Cinema Studio(시네마틱 연출)로 다시 이동. <strong>각 도구의 강점이 다르다는 것을 체감으로 이해</strong>했다.</div>
+        </div>
+      </div>
+      <div class="log-item">
+        <div class="log-dot problem"></div>
+        <div class="log-body">
+          <div class="log-tag">실패와 재발견</div>
+          <div class="log-text">초기엔 stylize 낮음 + chaos 없음 → 불쾌한 골짜기 느낌 부족. chaos 추가 후 원하는 분위기 근접.</div>
+        </div>
+      </div>
+      <div class="log-item">
+        <div class="log-dot insight"></div>
+        <div class="log-body">
+          <div class="log-tag">의도적 역이용</div>
+          <div class="log-text">AI가 "발빠짐 주의" 텍스트를 왜곡해 렌더링했다. 처음엔 결함처럼 보였지만, <strong>텍스트 왜곡 자체가 리미널 스페이스의 불안감을 증폭</strong>시킨다는 것을 깨닫고 의도적 연출 요소로 포함했다.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 영상 2개 -->
+    <div class="gallery-label" style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.2);margin:24px 0 12px;">생성된 영상 — 총 20초 (9s + 11s)</div>
+    <div class="video-grid cols-2">
+      <div class="video-card">
+        <div class="video-wrap">
+          <video controls preload="metadata">
+            <source src="https://www.genspark.ai/api/files/s/iPyUWvGl" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-meta">
+          <div class="video-title">Scene 1 — 눈을 뜨다</div>
+          <div class="video-desc">1080p · 9초 · 서울 지하철 백룸, 남자가 눈을 뜨고 불안감을 느끼는 클로즈업</div>
+          <span class="video-badge v1">Scene 01</span>
+        </div>
+      </div>
+      <div class="video-card">
+        <div class="video-wrap">
+          <video controls preload="metadata">
+            <source src="https://www.genspark.ai/api/files/s/Ve2IbGeA" type="video/mp4">
+          </video>
+        </div>
+        <div class="video-meta">
+          <div class="video-title">Scene 2 — 탐색하다</div>
+          <div class="video-desc">1080p · 11초 · 기묘한 지하철 역사에서 조심스럽게 주변을 살피는 장면</div>
+          <span class="video-badge v2">Scene 02</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 진행 중 배너 -->
+    <div class="wip-banner">
+      <div class="wip-icon">◐</div>
+      <div class="wip-text">
+        <strong>진행 중인 프로젝트</strong>입니다. 공간의 공포를 더 효과적으로 전달하기 위한 촬영 기법, 질감, 불안 요소의 배치를 연구하고 있습니다. AI Cinema Studio를 통해 이를 어떻게 구현할지도 탐구 중입니다.
+        최종 목표는 <strong>게임 트레일러 형식</strong>의 단편 영상입니다.
+      </div>
+    </div>
+  </section>
+
+  <!-- 하단 네비 -->
+  <nav class="bottom-nav">
+    <a class="bottom-nav-btn" href="./index.html">← 포트폴리오 홈</a>
+    <a class="bottom-nav-btn" href="./threshold.html">Threshold 탐구 →</a>
+  </nav>
+
+</main>
+
+<!-- 라이트박스 JS -->
+<script>
+function openLightbox(src){
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lightboxImg').src='';
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape') closeLightbox();
+});
+</script>
+
+</body>
+</html>

@@ -17,6 +17,7 @@ const files = {
   brandVoice: 'public/brand-voice.html',
   flowchart: 'public/flowchart.html',
   planning: 'public/planning.html',
+  aiExperiments: 'public/ai-experiments.html',
 }
 
 const entries = Object.entries(files).map(([key, path]) => {

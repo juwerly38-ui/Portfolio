@@ -13,9 +13,10 @@ const app = new Hono<{ Bindings: Bindings }>()
 // CORS
 app.use('/api/*', cors())
 
-// ── 정적 에셋 (이미지, CSS 등) ──
+// ── 정적 에셋 (이미지, CSS, 영상 등) ──
 app.use('/images/*', serveStatic({ root: './public' }))
 app.use('/static/*', serveStatic({ root: './public' }))
+// app.use('/videos/*', serveStatic({ root: './public' }))  // 영상은 외부 URL 사용
 
 // ── HTML 페이지 라우트 ──
 // 확장자 있는 버전 (.html) + 없는 버전 모두 처리
@@ -35,6 +36,8 @@ const routeMap: Record<string, string> = {
   '/flowchart.html':  pages.flowchart,
   '/planning':        pages.planning,
   '/planning.html':   pages.planning,
+  '/ai-experiments':      pages.aiExperiments,
+  '/ai-experiments.html': pages.aiExperiments,
 }
 
 for (const [path, html] of Object.entries(routeMap)) {
